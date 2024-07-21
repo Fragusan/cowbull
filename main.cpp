@@ -23,6 +23,7 @@ void charger();
 void hiddenCur();
 void showCur();
 void menu();
+void rules();
 
 int main() {
 	void sinMaximVentana();
@@ -31,7 +32,6 @@ int main() {
     // Configurar la localización inicial a Spanish
     setlocale(LC_CTYPE, "Spanish_Spain.1252");
     //cout << "Caracteres españoles: ñ, á, é, í, ó, ú\n";
-	//printf("%c\n", 178);
 	alternarLocale();
 	titulo();
 	cout <<"\n"<< endl;
@@ -137,13 +137,14 @@ void menu (){
 		showCur();
 		
 		textoCentro("MENU PRINCIPAL",5);
-		textoCentro("***********************",6);
+		textoCentro("*********************",6);
 		scanf("%i", &opc);
 	}while (opc<1 || opc > 8);
 
 	switch(opc){
 		case 1:
 			printf("primera opcion");
+			rules();
 			break;
 		case 2:
 			printf("segunda opcion");
@@ -168,4 +169,12 @@ void sinMaximVentana(){
 	consoleWindow = GetConsoleWindow();
 	SetWindowLong(consoleWindow, GWL_STYLE,GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
 */
+}
+
+void rules(){
+	//llamar a lvl y guardar el mismo para poder escribir
+	int lvl= 3; //de momento
+	alternarLocale();
+	cout <<"Generaré un número de "<< lvl<< " cifras\n Tu mision será adivinarlo\n (puedes cambiar esa cantidad en la opción "<< YELLOW BG_BLUE <<"\033[1mLEVEL" << BLACK << "\033[48;2;204;204;204m\033[38;2;12;12;12m)" <<endl;
+	//system("color 70");
 }
