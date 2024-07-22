@@ -8,10 +8,10 @@
 #include <cstring>//para manejar texto y conversiones
 #include <windows.h>//api de windows
 #include <ctime> // ayudara a implementar aleatoriedad en la generación de números
-#include "colors.h" 
+#include "colors.h" //libreria de github para colorear fondos y textos
 //https://github.com/p-ranav/tabulate no fue posble implementar porque es solo para c++ version 11 en adelante
 #include <fstream> // para leer y escribir archivos
-
+#include <conio.h> //para usar la función kbhit() que detecta teclas
 using namespace std;
 
 //prototipos
@@ -28,7 +28,7 @@ void showCur(); // muestra el cursor
 void menu(); // menu principal
 void rules(); // reglas
 int level (); // deberiamos construir un getter, un setter y un menu 
-
+void parpadeo(const char* txt, int y); // texto que parpadea
 
 
 
@@ -123,7 +123,6 @@ int main() {
     //cout << "Caracteres españoles: ñ, á, é, í, ó, ú\n";
 	alternarLocale();
 	margen();
-	//titulo();cout <<"\n"<< endl;
 	//pruebas de logo
     gotoxy(8, 1); printf("VV     VV   AAA    CCCCC    AAA    SSSSS     TTTTTTT  OOOOO  RRRRRR   OOOOO   SSSSS  \n");
     gotoxy(8, 2); printf("VV     VV  AAAAA  CC    C  AAAAA  SS           TTT   OO   OO RR   RR OO   OO SS      \n");
@@ -149,11 +148,12 @@ int main() {
 	
 	hiddenCur();
 	//charger("GENERANDO NÚMERO...");
+	parpadeo("Presiona enter para iniciar", 24);
+	//gotoxy(38,23); parpadeo("Presiona enter para iniciar");
 	charger("CARGANDO JUEGO...");
-	system("pause");
 	showCur();
 	system("cls");
-	titulo();
+	Sleep(150);
 	menu();
 	return 0;
 }
@@ -231,11 +231,11 @@ void charger(string txt){
 		gotoxy(i, 26); printf("%c\n", 176);
 	}
 	
-		for(i=4; i<= 95; i++){
-		gotoxy(i, 26); printf("%c\n", 178);
-		Sleep(23);
+	for(i=4; i<= 95; i++){
+	gotoxy(i, 26); printf("%c\n", 178);
+	Sleep(23);//retardo para apariencia de carga
 	}
-	gotoxy(35,27);system("pause");
+	//gotoxy(35,27);system("pause");
 }
 
 //oculta el cursor
@@ -253,11 +253,19 @@ void menu (){
 	
 	do{
 		system("cls");
+		margen();
 		titulo();
 		showCur();
 		
 		textoCentro("MENU PRINCIPAL",5);
 		textoCentro("*********************",6);
+		alternarLocale();
+		hiddenCur();
+		textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 8);
+		gotoxy(20, 10);printf("1. Iniciar nueva partida");
+		gotoxy(20, 11);printf("2. Reglas del juego");
+		gotoxy(20, 12);printf("3. Cambiar el nivel");
+		gotoxy(20, 13);printf("4. Mejores puntuaciones");
 		scanf("%i", &opc);
 	}while (opc<1 || opc > 8);
 
@@ -300,6 +308,40 @@ void rules(){
 	system("pause");
 }
 
+void parpadeo(const char* txt, int y) {
+    bool show = true;
+    int longitud = strlen(txt);
+    char* espacio = new char[longitud + 1]; // +1 para el carácter nulo
+
+    // Rellena el array con espacios y añade el carácter nulo al final
+    memset(espacio, ' ', longitud);
+    espacio[longitud] = '\0';
+
+    while (true) {
+        if (_kbhit()) {
+            char ch = _getch();
+            if (ch == 13) { // solo si se presiona enter
+                // Limpia el texto antes de romper el bucle
+                textoCentro(espacio, y);
+                break;
+            }
+        }
+
+        if (show) {
+            textoCentro(const_cast<char*>(txt), y);
+        } else {
+            textoCentro(espacio, y);
+        }
+        show = !show;
+
+        Sleep(500); // retardo
+
+        // Mueve el cursor hacia atrás para sobreescribir el texto
+        gotoxy(0, y);
+    }
+
+    delete[] espacio; // Libera la memoria reservada para espacio
+}
 //int level (int lvl){
 	
 	//return 8
