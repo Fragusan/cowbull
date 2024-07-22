@@ -25,7 +25,7 @@ void titulo(); // mentiene la cabecera del juego aún luego de borrar la pantalla
 void charger(string txt); // barra de carga de adorno
 void hiddenCur(); // esconde el cursosr
 void showCur(); // muestra el cursor 
-void menu(); // menu principal
+void menuPrincipal(); // menu principal
 void rules(); // reglas
 int level (); // deberiamos construir un getter, un setter y un menu 
 void parpadeo(const char* txt, int y); // texto que parpadea
@@ -154,7 +154,7 @@ int main() {
 	showCur();
 	system("cls");
 	Sleep(150);
-	menu();
+	menuPrincipal();
 	return 0;
 }
 
@@ -248,7 +248,7 @@ void showCur(){
 	printf("\e[?25h");
 }
 
-void menu (){
+void menuPrincipal (){
 	int opc;
 	
 	do{
@@ -262,14 +262,21 @@ void menu (){
 		alternarLocale();
 		hiddenCur();
 		textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 8);
-		gotoxy(20, 10);printf("1. Iniciar nueva partida");
-		gotoxy(20, 11);printf("2. Reglas del juego");
-		gotoxy(20, 12);printf("3. Cambiar el nivel");
-		gotoxy(20, 13);printf("4. Mejores puntuaciones");
+		gotoxy(20, 10);printf("1. NUEVA PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(20, 11);printf("2. CONTINUAR");//
+		gotoxy(20, 12);printf("3. OPCIONES"); // MUSICA, CAMBIAR COLOR, SONIDOS, NIVEL
+		gotoxy(20, 13);printf("4. RÉCORDS");
+		gotoxy(20, 14);printf("5. AYUDA");
+		gotoxy(20, 15);printf("0. SALIR");
+		gotoxy(20, 17);printf("OPCIÓN SELECCIONADA: ->");
+		showCur();
 		scanf("%i", &opc);
-	}while (opc<1 || opc > 8);
+	}while (opc<0 || opc > 7);
 
 	switch(opc){
+		case 0:
+			printf("primera opcion");
+			break;
 		case 1:
 			printf("primera opcion");
 			rules();
@@ -284,27 +291,49 @@ void menu (){
 			printf("cuarta opcion");
 			break;
 		case 5:
-			printf("quinta opcion");
+			system("cls");
+			alternarLocale();
+			margen();
+			titulo();
+			textoCentro("MENU AYUDA",5);
+			textoCentro("*********************",6);
+			rules();
 			break;
 		case 6:
-			printf("sexta opcion");
+			alternarLocale();
 			break;
 	}
 }
 
 void sinMaximVentana(){
-	/*HWND consoleWindow; 
+	HWND consoleWindow; 
 	consoleWindow = GetConsoleWindow();
 	SetWindowLong(consoleWindow, GWL_STYLE,GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
-*/
+
 }
 
 void rules(){
 	//llamar a lvl y guardar el mismo para poder escribir
 	int lvl= 3; //de momento
+	// recuadro 9- 16
+	cuadrito(18,8,78,19);
 	alternarLocale();
-	cout <<"Generaré un número de "<< lvl<< " cifras\n Tu mision será adivinarlo\n (puedes cambiar esa cantidad en la opción "<< YELLOW BG_BLUE <<"\033[1mLEVEL" << BLACK << "\033[48;2;204;204;204m\033[38;2;12;12;12m)" <<endl;
-	//system("color 70");
+	gotoxy(20, 9); cout << "Generaré un número de " << lvl << " cifras, tu mision será adivinarlo" ;//
+	gotoxy(20, 10); cout << "(puedes cambiar esa cantidad en la opción " << YELLOW BG_BLUE << "\033[1mLEVEL" << BLACK <<  "\033[48;2;204;204;204m\033[38;2;12;12;12m)";
+	gotoxy(20,11); cout << "Tendras intentos ilimitados, por cada uno de ellos te dare" ;
+	gotoxy(20,12); cout << "pistas para ayudarte." ;
+	gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
+	gotoxy(20,14); cout << "número secreto, veras " << BG_LYELLOW << "VACA\033[48;2;204;204;204m\033[38;2;12;12;12m junto a la cantidad de cifras"  ;
+	gotoxy(20,15); cout << "en pantalla. Si además de estar presente, está en la" ;
+	gotoxy(20,16); cout << "posición correcta, veras "<< BG_LGREEN <<"TORO\033[48;2;204;204;204m\033[38;2;12;12;12m. Si no hay aciertos ni de" ;
+	gotoxy(20,17); cout << "posición ni de cifra, veras "<< BG_RED <<"0V0T\033[48;2;204;204;204m\033[38;2;12;12;12m. Ganarás la partida al" ;
+	gotoxy(20,18); cout << "obtener tantos "<< BG_LGREEN << "TORO\033[48;2;204;204;204m\033[38;2;12;12;12m como el nivel de dificultad seteado";// 
+	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 21);
+		gotoxy(20, 23);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(20, 24);printf("2. SALIR");
+		gotoxy(20, 26);printf("OPCIÓN SELECCIONADA: ->");
+		alternarLocale();
+		
 	system("pause");
 }
 

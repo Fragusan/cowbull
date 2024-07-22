@@ -11,6 +11,7 @@
 #define ROSE    "\x1B[38;2;255;151;203m"
 #define LBLUE   "\x1B[38;2;53;149;240m"
 #define LGREEN  "\x1B[38;2;17;245;120m"
+#define LYELLOW  "\x1B[38;2;255;201;14m"
 #define GRAY    "\x1B[38;2;176;174;174m"
 #define RESET   "\x1b[0m"
 //===Color background code===/
@@ -25,5 +26,6 @@
 #define BG_ORANGE  "\x1B[48;2;255;128;0m"
 #define BG_LBLUE   "\x1B[48;2;53;149;240m"
 #define BG_LGREEN  "\x1B[48;2;17;245;120m"
+#define BG_LYELLOW  "\x1B[48;2;255;201;14m"
 #define BG_GRAY    "\x1B[48;2;176;174;174m"
 #define BG_ROSE    "\x1B[48;2;255;151;203m"
