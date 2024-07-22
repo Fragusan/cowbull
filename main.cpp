@@ -29,6 +29,8 @@ void menuPrincipal(); // menu principal
 void rules(); // reglas
 int level (); // deberiamos construir un getter, un setter y un menu 
 void parpadeo(const char* txt, int y); // texto que parpadea
+void logoText(); // pinta el logo en texto ascii
+void salida();// menu para finalizar el programa
 
 
 
@@ -115,7 +117,7 @@ class player {
 
 
 int main() {
-	void sinMaximVentana();
+	sinMaximVentana();
 	system("mode con: cols=100 lines=30");
 	system("color 70");
     // Configurar la localización inicial a Spanish
@@ -124,11 +126,7 @@ int main() {
 	alternarLocale();
 	margen();
 	//pruebas de logo
-    gotoxy(8, 1); printf("VV     VV   AAA    CCCCC    AAA    SSSSS     TTTTTTT  OOOOO  RRRRRR   OOOOO   SSSSS  \n");
-    gotoxy(8, 2); printf("VV     VV  AAAAA  CC    C  AAAAA  SS           TTT   OO   OO RR   RR OO   OO SS      \n");
-    gotoxy(8, 3); printf(" VV   VV  AA   AA CC      AA   AA  SSSSS       TTT   OO   OO RRRRRR  OO   OO  SSSSS  \n");
-    gotoxy(8, 4); printf("  VV VV   AAAAAAA CC    C AAAAAAA      SS      TTT   OO   OO RR  RR  OO   OO      SS \n");
-    gotoxy(8, 5);printf("   VVV    AA   AA  CCCCC  AA   AA  SSSSS       TTT    OOOO0  RR   RR  OOOO0   SSSSS\n");                                    
+    logoText();                                  
 	
 	gotoxy(32,8); printf("         32233 13333331 33253         \n");
     gotoxy(32,9);printf("733333331 57 551      155 757133333337\n");
@@ -253,6 +251,7 @@ void menuPrincipal (){
 	
 	do{
 		system("cls");
+		system("color 70");
 		margen();
 		titulo();
 		showCur();
@@ -275,7 +274,7 @@ void menuPrincipal (){
 
 	switch(opc){
 		case 0:
-			printf("primera opcion");
+			salida();
 			break;
 		case 1:
 			printf("primera opcion");
@@ -291,12 +290,6 @@ void menuPrincipal (){
 			printf("cuarta opcion");
 			break;
 		case 5:
-			system("cls");
-			alternarLocale();
-			margen();
-			titulo();
-			textoCentro("MENU AYUDA",5);
-			textoCentro("*********************",6);
 			rules();
 			break;
 		case 6:
@@ -313,9 +306,17 @@ void sinMaximVentana(){
 }
 
 void rules(){
-	//llamar a lvl y guardar el mismo para poder escribir
-	int lvl= 3; //de momento
-	// recuadro 9- 16
+	int opc;
+	int lvl= 3; //de momento, debe poder llmaarlo desde el player seteado
+
+	do{
+	system("cls");
+	alternarLocale();
+	margen();
+	titulo();
+	textoCentro("MENU AYUDA",5);
+	textoCentro("*********************",6);
+	// recuadro 9- 19
 	cuadrito(18,8,78,19);
 	alternarLocale();
 	gotoxy(20, 9); cout << "Generaré un número de " << lvl << " cifras, tu mision será adivinarlo" ;//
@@ -326,13 +327,27 @@ void rules(){
 	gotoxy(20,14); cout << "número secreto, veras " << BG_LYELLOW << "VACA\033[48;2;204;204;204m\033[38;2;12;12;12m junto a la cantidad de cifras"  ;
 	gotoxy(20,15); cout << "en pantalla. Si además de estar presente, está en la" ;
 	gotoxy(20,16); cout << "posición correcta, veras "<< BG_LGREEN <<"TORO\033[48;2;204;204;204m\033[38;2;12;12;12m. Si no hay aciertos ni de" ;
-	gotoxy(20,17); cout << "posición ni de cifra, veras "<< BG_RED <<"0V0T\033[48;2;204;204;204m\033[38;2;12;12;12m. Ganarás la partida al" ;
+	gotoxy(20,17); cout << "posición ni de cifra, veras "<< WHITE BG_RED <<"0V0T\033[48;2;204;204;204m\033[38;2;12;12;12m. Ganarás la partida al" ;
 	gotoxy(20,18); cout << "obtener tantos "<< BG_LGREEN << "TORO\033[48;2;204;204;204m\033[38;2;12;12;12m como el nivel de dificultad seteado";// 
 	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 21);
 		gotoxy(20, 23);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
-		gotoxy(20, 24);printf("2. SALIR");
+		gotoxy(20, 24);printf("0. SALIR");
+		showCur();
 		gotoxy(20, 26);printf("OPCIÓN SELECCIONADA: ->");
 		alternarLocale();
+		scanf("%i", &opc);
+		
+	}while (opc<0 || opc > 1);
+	
+	switch(opc){
+		case 0:
+			printf(" Se eligio salir");
+			break;
+		case 1:
+			menuPrincipal();
+			break;
+		
+	}
 		
 	system("pause");
 }
@@ -370,6 +385,53 @@ void parpadeo(const char* txt, int y) {
     }
 
     delete[] espacio; // Libera la memoria reservada para espacio
+}
+
+void logoText(){
+	gotoxy(8, 1); printf("VV     VV   AAA    CCCCC    AAA    SSSSS     TTTTTTT  OOOOO  RRRRRR   OOOOO   SSSSS  \n");
+    gotoxy(8, 2); printf("VV     VV  AAAAA  CC    C  AAAAA  SS           TTT   OO   OO RR   RR OO   OO SS      \n");
+    gotoxy(8, 3); printf(" VV   VV  AA   AA CC      AA   AA  SSSSS       TTT   OO   OO RRRRRR  OO   OO  SSSSS  \n");
+    gotoxy(8, 4); printf("  VV VV   AAAAAAA CC    C AAAAAAA      SS      TTT   OO   OO RR  RR  OO   OO      SS \n");
+    gotoxy(8, 5);printf("   VVV    AA   AA  CCCCC  AA   AA  SSSSS       TTT    OOOO0  RR   RR  OOOO0   SSSSS\n");
+}
+
+void salida(){
+	int opc;
+	
+	do{
+	system("cls");
+	system("color 40");
+	alternarLocale();
+	margen();
+    logoText();
+    textoCentro("MENU SALIR",8);
+	textoCentro("*********************",9);
+	cuadrito(22,11,78,16);//13
+	alternarLocale();
+	textoCentro("ESTÁS A PUNTO DE CERRAR EL JUEGO", 13);
+	textoCentro("¿DESEAS SALIR?", 14);
+	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 18);
+		gotoxy(20, 20);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(20, 21);printf("0. SALIR");
+		showCur();
+		gotoxy(20, 23);printf("OPCIÓN SELECCIONADA: ->");
+		scanf("%i", &opc);
+	}while (opc<0 || opc > 1);
+	
+	switch(opc){
+		case 0:
+			cout << "" << WHITE << endl ;
+			textoCentro("SU ALMA SE VENDIÓ AL DIABLO DE MANERA SATISFACTORIA", 13);
+			cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
+			gotoxy(20, 24);
+			exit(0);
+			break;
+		case 1:
+			menuPrincipal();
+			break;
+		
+	}
+	
 }
 //int level (int lvl){
 	
