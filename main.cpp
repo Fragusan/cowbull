@@ -11,7 +11,12 @@
 #include "colors.h" //libreria de github para colorear fondos y textos
 //https://github.com/p-ranav/tabulate no fue posble implementar porque es solo para c++ version 11 en adelante
 #include <fstream> // para leer y escribir archivos
-#include <conio.h> //para usar la función kbhit() que detecta teclas
+#include <conio.h> //para usar la función kbhit() que detecta las teclas que se presionan
+#include <vector> // para manejar vectores
+#include <algorithm> //para utilizar count()
+//#include "dnc/JSON.hpp" //para manipular json  https://github.com/joaquinrmi/JSON/tree/master
+
+
 using namespace std;
 
 //prototipos
@@ -30,9 +35,12 @@ void rules(); // reglas
 int level (); // deberiamos construir un getter, un setter y un menu 
 void parpadeo(const char* txt, int y); // texto que parpadea
 void logoText(); // pinta el logo en texto ascii
+void dibujoVaquita(); // pinta imagen ascii
 void salida();// menu para finalizar el programa
+void startGame ();//menu de preinicio de juego
+int generarNum(int lvl); // genera cifras aleatorias sin repetir la cifra
 
-
+static int acc=0;
 
 class player {
 	private:
@@ -46,7 +54,7 @@ class player {
 		int intentos;
 		int code;
 		
-	player(string u = "defaultUser", int p = 0, int i = 0, int t = 0, int v = 0, int l = 1, int in = 0, int c = 0)
+	player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
         : user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c) {}
         
     void setUser(const string& u) {
@@ -115,6 +123,7 @@ class player {
     }
 };
 
+	
 
 int main() {
 	sinMaximVentana();
@@ -128,27 +137,12 @@ int main() {
 	//pruebas de logo
     logoText();                                  
 	
-	gotoxy(32,8); printf("         32233 13333331 33253         \n");
-    gotoxy(32,9);printf("733333331 57 551      155 757133333337\n");
-    gotoxy(32,10);printf("6       753632          544327       6\n");
-    gotoxy(32,11);printf("51        74  9        9  47        15\n");
-    gotoxy(32,12);printf(" 53       5   72      27   5       32 \n");
-    gotoxy(32,13);printf("   5577754     0      0     3277155   \n");
-    gotoxy(32,14);printf("        31764  6      9  66713        \n");
-    gotoxy(32,15);printf("         9 33  9      8  33 9         \n");
-    //gotoxy(32;16);printf("          32   9      6   23          \n");
-    gotoxy(32,16);printf("           9  6177777716  9           \n");
-    gotoxy(32,17);printf("          3411          1153          \n");
-    gotoxy(32,18);printf("          6   515    515   6          \n");
-    gotoxy(32,19);printf("          57    7    7    75          \n");
-    gotoxy(32,20);printf("           3223333333333223           \n");
-    gotoxy(32,21);printf("              4333333334               \n");
+	dibujoVaquita();
 	
 	hiddenCur();
-	//charger("GENERANDO NÚMERO...");
-	parpadeo("Presiona enter para iniciar", 24);
-	//gotoxy(38,23); parpadeo("Presiona enter para iniciar");
+	parpadeo("PRESIONA ENTER PARA INICIAR", 24);
 	charger("CARGANDO JUEGO...");
+	
 	showCur();
 	system("cls");
 	Sleep(150);
@@ -169,7 +163,7 @@ void alternarLocale() {
     }
 }
 
-//funcion para controlar las posiciones del texto y del cursor
+//funcion para controlar las posiciones del texto y del cursor con coordenadas
 void gotoxy(int x, int y){
 	HANDLE hcon;
 	hcon= GetStdHandle(STD_OUTPUT_HANDLE);
@@ -201,7 +195,7 @@ void cuadrito(int xs, int ys, int xe, int ye){
 	gotoxy(xs,ye); printf("%c\n", 200);
 }
 
-void textoCentro (char *texto, int y){
+void textoCentro (char *texto, int y){//centra el texto en pantalla a la altura de y que se le indique (usa gotoxy())
 	int longitud = strlen(texto);
 	gotoxy(50-(longitud/2), y); printf(texto);
 }
@@ -215,7 +209,6 @@ void titulo(){
 	textoCentro("VACAS TOROS", 2);
 }
 
-//no funcniona como se esperaba
 //deberia recibir un argumento para cambiar el texto
 void charger(string txt){
 	int i;
@@ -233,7 +226,6 @@ void charger(string txt){
 	gotoxy(i, 26); printf("%c\n", 178);
 	Sleep(23);//retardo para apariencia de carga
 	}
-	//gotoxy(35,27);system("pause");
 }
 
 //oculta el cursor
@@ -277,8 +269,10 @@ void menuPrincipal (){
 			salida();
 			break;
 		case 1:
-			printf("primera opcion");
-			rules();
+			alternarLocale();
+			charger("CARGANDO NUEVA SESIÓN...");
+			alternarLocale();
+			startGame();
 			break;
 		case 2:
 			printf("segunda opcion");
@@ -298,7 +292,7 @@ void menuPrincipal (){
 	}
 }
 
-void sinMaximVentana(){
+void sinMaximVentana(){//funciona en windows con permisos elevados
 	HWND consoleWindow; 
 	consoleWindow = GetConsoleWindow();
 	SetWindowLong(consoleWindow, GWL_STYLE,GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
@@ -341,7 +335,8 @@ void rules(){
 	
 	switch(opc){
 		case 0:
-			printf(" Se eligio salir");
+			alternarLocale();
+			salida();
 			break;
 		case 1:
 			menuPrincipal();
@@ -352,7 +347,7 @@ void rules(){
 	system("pause");
 }
 
-void parpadeo(const char* txt, int y) {
+void parpadeo(const char* txt, int y) {// chat gpt me ayudo
     bool show = true;
     int longitud = strlen(txt);
     char* espacio = new char[longitud + 1]; // +1 para el carácter nulo
@@ -379,12 +374,11 @@ void parpadeo(const char* txt, int y) {
         show = !show;
 
         Sleep(500); // retardo
-
         // Mueve el cursor hacia atrás para sobreescribir el texto
         gotoxy(0, y);
     }
 
-    delete[] espacio; // Libera la memoria reservada para espacio
+    delete[] espacio; // Libera la memoria 
 }
 
 void logoText(){
@@ -393,6 +387,24 @@ void logoText(){
     gotoxy(8, 3); printf(" VV   VV  AA   AA CC      AA   AA  SSSSS       TTT   OO   OO RRRRRR  OO   OO  SSSSS  \n");
     gotoxy(8, 4); printf("  VV VV   AAAAAAA CC    C AAAAAAA      SS      TTT   OO   OO RR  RR  OO   OO      SS \n");
     gotoxy(8, 5);printf("   VVV    AA   AA  CCCCC  AA   AA  SSSSS       TTT    OOOO0  RR   RR  OOOO0   SSSSS\n");
+}
+
+void dibujoVaquita(){
+	gotoxy(32,8); printf("         32233 13333331 33253         \n");
+    gotoxy(32,9);printf("733333331 57 551      155 757133333337\n");
+    gotoxy(32,10);printf("6       753632          544327       6\n");
+    gotoxy(32,11);printf("51        74  9        9  47        15\n");
+    gotoxy(32,12);printf(" 53       5   72      27   5       32 \n");
+    gotoxy(32,13);printf("   5577754     0      0     3277155   \n");
+    gotoxy(32,14);printf("        31764  6      9  66713        \n");
+    gotoxy(32,15);printf("         9 33  9      8  33 9         \n");
+    //gotoxy(32;16);printf("          32   9      6   23          \n");
+    gotoxy(32,16);printf("           9  6177777716  9           \n");
+    gotoxy(32,17);printf("          3411          1153          \n");
+    gotoxy(32,18);printf("          6   515    515   6          \n");
+    gotoxy(32,19);printf("          57    7    7    75          \n");
+    gotoxy(32,20);printf("           3223333333333223           \n");
+    gotoxy(32,21);printf("              4333333334               \n");
 }
 
 void salida(){
@@ -422,16 +434,113 @@ void salida(){
 		case 0:
 			cout << "" << WHITE << endl ;
 			textoCentro("SU ALMA SE VENDIÓ AL DIABLO DE MANERA SATISFACTORIA", 13);
-			cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
+			//cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
 			gotoxy(20, 24);
+			Sleep(450);
 			exit(0);
+			break;
+		case 1:
+			alternarLocale();
+			menuPrincipal();
+			break;
+	}
+	
+}
+
+void startGame (){
+	int opc;
+	int accID=0;
+	//leer el archivo y contar las lineas y usar eso como valor de id;
+	ifstream archivoL("db.json", ios::app);
+	if(archivoL.is_open()){
+		string linea;
+		while (getline(archivoL, linea)) {
+            accID= accID+1;
+        }
+        archivoL.close();
+	}
+	
+	
+	player p1;
+	p1.setPass(generarNum(6));
+	//player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
+        //: user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c)
+    ofstream archivoE("db.json", ios::app);
+    if(archivoE.is_open()){
+    
+    	p1.setId(accID);
+    	archivoE << "ID: "<< p1.getId() <<", lvl : 3, code : " << generarNum(p1.getLevel()) << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser() << ", pass :" <<p1.getPass() << ",\n"; 
+		archivoE.close();
+		
+	}else{
+		printf("No se pudo");
+	}
+    
+    Sleep(100);    
+	do{
+	system("cls");
+	alternarLocale();
+	margen();
+	titulo();
+	textoCentro("NUEVA PARTIDA",5);
+	textoCentro("*********************",6);
+	// recuadro 9- 19
+	cuadrito(18,8,78,16);
+	alternarLocale();
+	gotoxy(20, 9); cout << "Se te asigno el ID N° " << p1.getId();//
+	// int generarNum(6);
+	gotoxy(20, 10); cout << "Tu contraseña será: " << p1.getPass();
+	gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
+	gotoxy(20,12); cout << "estadísticas de tu progreso.";
+	gotoxy(20,14); cout << "Si no ingresas un nombre de usuario jugaras como '"<< p1.getUser() <<"'" ;
+	gotoxy(20,15); cout << "¿Estás listo para comenzar en el nivel " << p1.getLevel() <<" ?";
+	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
+	
+	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 17);
+		gotoxy(20, 19);printf("1. INICIAR PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(20, 20);printf("2. MODIFICAR EL NOMBRE DE USUARIO");
+		gotoxy(20, 21);printf("3. MODIFICAR NIVEL");
+		gotoxy(20, 22);printf("4. ESTE NO ES MI USUARIO");
+		gotoxy(20, 23);printf("0. SALIR");
+		showCur();
+		gotoxy(20, 25);printf("OPCIÓN SELECCIONADA: -> ");
+		alternarLocale();
+		scanf("%i", &opc);
+		
+	}while(opc<0 || opc > 3);
+	switch(opc){
+		case 0:
+			alternarLocale();
+			salida();
 			break;
 		case 1:
 			menuPrincipal();
 			break;
-		
+	}
+}
+
+int generarNum(int lvl){
+	srand(static_cast<unsigned int>(time(NULL)));// uso del time para generar una semillita jaja
+	vector<int> digitos;
+	
+	while (digitos.size()< static_cast<size_t>(lvl)){// se analiza el tamaño del vector comparandolo contra  el lvl que es convertido para poder comparar
+		int digito = rand() % 10;
+		if(count (digitos.begin(), digitos.end(), digito) == 0){// count se fija cuantas veces aparece, se pone el rango en inicio y fin, 
+			digitos.push_back(digito);
+		}
 	}
 	
+	int numero =0;
+	/*for(int digito : digito){
+		numero = numero *10 + digito;
+	}*/
+	
+	for (size_t i = 0; i < digitos.size(); ++i) {
+    numero = numero * 10 + digitos[i];
+}
+
+	
+	return numero;
 }
 //int level (int lvl){
 	
