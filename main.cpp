@@ -17,6 +17,7 @@
 //#include "dnc/JSON.hpp" //para manipular json  https://github.com/joaquinrmi/JSON/tree/master
 #include <sstream> // para trabajar con escritura de archivo y conversion/ serializacion
 #include <string> // idem de 18
+# include <cctype> //poder utilizar uppercase
 #include "Player.h"
 
 using namespace std;
@@ -648,10 +649,11 @@ void changeUserName(){
 //}
 
 void intento (int id){
-	int opc;
+	char opc;
 	player pp=findPlayerById(id);
 	
 	do{
+	
 	system("cls");
 	margen();
 	titulo();
@@ -663,7 +665,6 @@ void intento (int id){
 	cuadrito(18,8,78,11);
 	alternarLocale();
 	gotoxy(20, 9); cout << "Debes adivinar un N° de " << pp.getLevel() << " cifras.";//
-	// int generarNum(6);
 	
 	//gotoxy(20,10); cout << "Intentos realizados N° "<< pp.getIntentos() << ( (pp.getVacas() > 1) ? BG_YELLOW : WHITE BG_RED) && pp.getVacas() << " VACAS" << ( (pp.getToros() > 1) ? BG_LGREEN : WHITE BG_RED) && pp.getToros() << " TOROS";
 	
@@ -693,14 +694,11 @@ void intento (int id){
 			}
 				cout << pp.getToros() << " TOROS" << BLACK BG_COW;;
 	
-	//gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
 	alternarLocale();
 	cuadrito(18,11,78,14, 204,185,188,200);//segundo cuadrito
 	alternarLocale();
 	gotoxy(20,12); cout << "Ingresá un nuevo intento" ;
 	showCur();
-	//gotoxy(20,13); cin >> IDFind ;
-	//gotoxy(20,15); cin >> passFind ;
 	
 	/*if( !(passFind >= 102345 && passFind <= 987654)){
 		gotoxy(20,13); cout << WINE <<"LA CONTRASEÑA DEBE SER DE 6 NÚMEROS";
@@ -709,7 +707,6 @@ void intento (int id){
 		cout << BLACK;
 		changeUserName();
 	}*/
-	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
 	
 	gotoxy(19,16);printf("Usa las teclas asignadas para seleccionar las opciones");
 		gotoxy(19, 18);printf("T. INGRESAR INTENTO");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
@@ -719,20 +716,39 @@ void intento (int id){
 		showCur();
 		gotoxy(20, 13);
 		alternarLocale();
-		scanf("%i", &opc);
+		//scanf("%i", &opc);
+		cin >> opc;
+		opc = toupper(opc);
 		
+		} while (!(isdigit(opc) || isalpha(opc)));
 		
-		
-	}while(opc<0 || opc > 3);
-	switch(opc){
-		case 0:
-			alternarLocale();
-			salida();
-			break;
-		case 3:
-			menuPrincipal ();
-			break;
-	}
+		if(isdigit(opc)){
+			//lo que pasará con el digito ingresado
+			gotoxy(19,15); cout << WINE << "es un digito" << BLACK;
+		}else if(isalpha(opc)){
+			opc= toupper(opc);
+			switch (opc){
+				case 'T':
+					//algo
+					break;
+				case 'L':
+					//rendirse
+					break;
+				case 'B':
+					menuPrincipal();
+					break;
+				case 'S':
+					salida();
+					break;
+				default:
+					gotoxy(19,15); cout << WINE << "LA LETRA INGRESADA NO ES UNA OPCIÓN VÁLIDA" << BLACK;
+					intento(id);
+					break;
+			}
+		}else{
+			gotoxy(19,15); cout << WINE << "LA OPCIÓN INGRESADA NO ES VÁLIDA" << BLACK;
+			intento(id);
+		}
 	
 }
 
