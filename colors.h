@@ -26,6 +26,7 @@
 #define BG_WHITE   "\x1B[47m"
 #define BG_ORANGE  "\x1B[48;2;255;128;0m"
 #define BG_WINE  "\x1B[48;2;136;24;65m"
+#define BG_COW  "\x1B[48;2;204;204;204m"
 #define BG_LBLUE   "\x1B[48;2;53;149;240m"
 #define BG_LGREEN  "\x1B[48;2;17;245;120m"
 #define BG_LYELLOW  "\x1B[48;2;255;201;14m"
