@@ -15,7 +15,9 @@
 #include <vector> // para manejar vectores
 #include <algorithm> //para utilizar count()
 //#include "dnc/JSON.hpp" //para manipular json  https://github.com/joaquinrmi/JSON/tree/master
-
+#include <sstream> // para trabajar con escritura de archivo y conversion/ serializacion
+#include <string> // idem de 18
+#include "Player.h"
 
 using namespace std;
 
@@ -39,10 +41,17 @@ void dibujoVaquita(); // pinta imagen ascii
 void salida();// menu para finalizar el programa
 void startGame ();//menu de preinicio de juego
 int generarNum(int lvl); // genera cifras aleatorias sin repetir la cifra
+void changeUserName();
+void cuadrito(int xs, int ys, int xe, int ye, int esquina1, int esquina2, int esquina3, int esquina4);
+int stringToInt(const string& str);
+void intento (int id);
+int stringToInt(const string& str);
+//player findPlayerById(int findId) ;
+
 
 static int acc=0;
 
-class player {
+/*class player {
 	private:
 		string user;
 		int pass;
@@ -121,9 +130,8 @@ class player {
     int getCode() const {
         return code;
     }
-};
+};*/
 
-	
 
 int main() {
 	sinMaximVentana();
@@ -173,7 +181,7 @@ void gotoxy(int x, int y){
 	SetConsoleCursorPosition(hcon, dwPos);
 }
 
-void cuadrito(int xs, int ys, int xe, int ye){
+void cuadrito(int xs, int ys, int xe, int ye){ // genera marcos decorativos
 	int i;
 	//control horizontal
 	for (i= xs; i<= xe; i++){
@@ -193,6 +201,28 @@ void cuadrito(int xs, int ys, int xe, int ye){
 	gotoxy(xe,ye); printf("%c\n", 188);
 	//cuarta esquina
 	gotoxy(xs,ye); printf("%c\n", 200);
+}
+
+void cuadrito(int xs, int ys, int xe, int ye, int esquina1, int esquina2, int esquina3, int esquina4){ //hacer sobrecarga de metodo para cuadro anidado
+	int i;
+	//control horizontal
+	for (i= xs; i<= xe; i++){
+		gotoxy(i,ys); printf("%c\n", 205);
+		gotoxy(i,ye); printf("%c\n", 205);
+	}
+	//control vertical
+	for (i= ys; i<= ye; i++){
+		gotoxy(xs,i); printf("%c\n", 186);
+		gotoxy(xe,i); printf("%c\n", 186);
+	}
+	//primera esquina
+	gotoxy(xs,ys); printf("%c\n", esquina1);
+	//segunda esquina
+	gotoxy(xe,ys); printf("%c\n", esquina2);
+	//tercera esquina
+	gotoxy(xe,ye); printf("%c\n", esquina3);
+	//cuarta esquina
+	gotoxy(xs,ye); printf("%c\n", esquina4);
 }
 
 void textoCentro (char *texto, int y){//centra el texto en pantalla a la altura de y que se le indique (usa gotoxy())
@@ -259,7 +289,7 @@ void menuPrincipal (){
 		gotoxy(20, 13);printf("4. RÉCORDS");
 		gotoxy(20, 14);printf("5. AYUDA");
 		gotoxy(20, 15);printf("0. SALIR");
-		gotoxy(20, 17);printf("OPCIÓN SELECCIONADA: ->");
+		gotoxy(20, 17);printf("OPCIÓN SELECCIONADA: -> ");
 		showCur();
 		scanf("%i", &opc);
 	}while (opc<0 || opc > 7);
@@ -436,7 +466,7 @@ void salida(){
 			textoCentro("SU ALMA SE VENDIÓ AL DIABLO DE MANERA SATISFACTORIA", 13);
 			//cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
 			gotoxy(20, 24);
-			Sleep(450);
+			Sleep(650);
 			exit(0);
 			break;
 		case 1:
@@ -449,6 +479,7 @@ void salida(){
 
 void startGame (){
 	int opc;
+	int id;
 	int accID=0;
 	//leer el archivo y contar las lineas y usar eso como valor de id;
 	ifstream archivoL("db.json", ios::app);
@@ -463,6 +494,7 @@ void startGame (){
 	
 	player p1;
 	p1.setPass(generarNum(6));
+	id=p1.getId();
 	//player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
         //: user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c)
     ofstream archivoE("db.json", ios::app);
@@ -487,12 +519,12 @@ void startGame (){
 	// recuadro 9- 19
 	cuadrito(18,8,78,16);
 	alternarLocale();
-	gotoxy(20, 9); cout << "Se te asigno el ID N° " << p1.getId();//
+	gotoxy(20, 9); cout << "Se te asigno el "<< BG_CYAN "ID N° " << p1.getId() << BG_COW;//
 	// int generarNum(6);
-	gotoxy(20, 10); cout << "Tu contraseña será: " << p1.getPass();
+	gotoxy(20, 10); cout << "Tu contraseña será: " << GREEN << p1.getPass() << BLACK;
 	gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
 	gotoxy(20,12); cout << "estadísticas de tu progreso.";
-	gotoxy(20,14); cout << "Si no ingresas un nombre de usuario jugaras como '"<< p1.getUser() <<"'" ;
+	gotoxy(20,14); cout << "Si no ingresas un nombre de usuario jugaras como '"<< BG_ORANGE << p1.getUser() << BG_COW << "'" ;
 	gotoxy(20,15); cout << "¿Estás listo para comenzar en el nivel " << p1.getLevel() <<" ?";
 	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
 	
@@ -514,7 +546,11 @@ void startGame (){
 			salida();
 			break;
 		case 1:
-			menuPrincipal();
+			intento(accID);
+			break; 
+			
+		case 2:
+			changeUserName();
 			break;
 	}
 }
@@ -542,7 +578,214 @@ int generarNum(int lvl){
 	
 	return numero;
 }
+
+void changeUserName(){
+	int opc;
+	int IDFind;
+	int passFind;
+	int IDDB;
+	int passDB;
+	string user;
+	
+	do{
+	system("cls");
+
+	margen();
+	titulo();
+	textoCentro("MODIFICAR EL NOMBRE DE USUARIO",5);
+	textoCentro("*********************",6);
+	// recuadro 9- 19
+	cuadrito(18,8,78,11);
+	alternarLocale();
+	gotoxy(20, 9); cout << "Para modificar tu nick de usuario necesitamos";//
+	// int generarNum(6);
+	gotoxy(20,10); cout << "que ingreses tu ID y contraseña";
+	//gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
+	alternarLocale();
+	cuadrito(18,11,78,16, 204,185,188,200);//segundo cuadrito
+	alternarLocale();
+	gotoxy(20,12); cout << "Ingresá por favor tu ID:" ;
+	showCur();
+	gotoxy(20,13); cin >> IDFind ;
+	hiddenCur();
+	gotoxy(20,14); cout << "Ingresá por favor tu contraseña:";
+	showCur();
+	gotoxy(20,15); cin >> passFind ;
+	
+	if( !(passFind >= 102345 && passFind <= 987654)){
+		gotoxy(20,13); cout << WINE <<"LA CONTRASEÑA DEBE SER DE 6 NÚMEROS";
+		Sleep(800);
+		alternarLocale();
+		cout << BLACK;
+		changeUserName();
+	}
+	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
+	
+	gotoxy(19,17);printf("Usa el teclado númerico para seleccionar una de las opciones");
+		gotoxy(19, 19);printf("1. CONFIRMAR ID Y CONTRASEÑA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(19, 20);printf("2. OLVIDE MIS DATOS");
+		gotoxy(19, 21);printf("3. VOLVER AL MENU PRINCIPAL");
+		gotoxy(19, 22);printf("0. SALIR");
+		showCur();
+		gotoxy(19, 25);printf("OPCIÓN SELECCIONADA: -> ");
+		alternarLocale();
+		scanf("%i", &opc);
+		
+	}while(opc<0 || opc > 3);
+	switch(opc){
+		case 0:
+			alternarLocale();
+			salida();
+			break;
+		case 3:
+			menuPrincipal ();
+			break;
+	}
+}
 //int level (int lvl){
 	
 	//return 8
 //}
+
+void intento (int id){
+	int opc;
+	player pp=findPlayerById(id);
+	
+	do{
+	system("cls");
+	margen();
+	titulo();
+	gotoxy(38,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
+	textoCentro("*********************",6);
+	gotoxy(38,7); cout << "USER: " << pp.getUser() << pp.getCode();
+	gotoxy(38,9); cout << pp.getCode();
+	// recuadro 9- 19
+	cuadrito(18,8,78,11);
+	alternarLocale();
+	gotoxy(20, 9); cout << "Debes adivinar un N° de " << pp.getLevel() << " cifras.";//
+	// int generarNum(6);
+	
+	//gotoxy(20,10); cout << "Intentos realizados N° "<< pp.getIntentos() << ( (pp.getVacas() > 1) ? BG_YELLOW : WHITE BG_RED) && pp.getVacas() << " VACAS" << ( (pp.getToros() > 1) ? BG_LGREEN : WHITE BG_RED) && pp.getToros() << " TOROS";
+	
+	gotoxy(20,10); 
+		cout << "Intentos realizados ";
+			
+			if(pp.getIntentos() <= 5){
+				cout << BG_LGREEN;
+			} else if (pp.getIntentos() >5 && pp.getIntentos() < 10){
+				cout << BG_ORANGE;
+			}else{
+				cout << BG_WINE;
+			}
+				cout << "N° " << pp.getIntentos()<< "\t\t" << BG_COW;
+			
+			if (pp.getVacas() >= 1) {
+    			cout << BG_LYELLOW;
+			} else {
+    			cout << WHITE BG_RED;
+			}
+				cout << pp.getVacas() << " VACAS" << BLACK BG_COW <<" ";
+
+			if (pp.getToros() > 1) {
+    			cout << BG_LGREEN;
+			} else {
+    			cout << WHITE BG_RED;
+			}
+				cout << pp.getToros() << " TOROS" << BLACK BG_COW;;
+	
+	//gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
+	alternarLocale();
+	cuadrito(18,11,78,14, 204,185,188,200);//segundo cuadrito
+	alternarLocale();
+	gotoxy(20,12); cout << "Ingresá un nuevo intento" ;
+	showCur();
+	//gotoxy(20,13); cin >> IDFind ;
+	//gotoxy(20,15); cin >> passFind ;
+	
+	/*if( !(passFind >= 102345 && passFind <= 987654)){
+		gotoxy(20,13); cout << WINE <<"LA CONTRASEÑA DEBE SER DE 6 NÚMEROS";
+		Sleep(800);
+		alternarLocale();
+		cout << BLACK;
+		changeUserName();
+	}*/
+	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
+	
+	gotoxy(19,16);printf("Usa las teclas asignadas para seleccionar las opciones");
+		gotoxy(19, 18);printf("T. INGRESAR INTENTO");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(19, 19);printf("L. RENDIRSE (LOOOSER)");
+		gotoxy(19, 20);printf("B. VOLVER AL MENU PRINCIPAL");
+		gotoxy(19, 21);printf("S. SALIR");
+		showCur();
+		gotoxy(20, 13);
+		alternarLocale();
+		scanf("%i", &opc);
+		
+		
+		
+	}while(opc<0 || opc > 3);
+	switch(opc){
+		case 0:
+			alternarLocale();
+			salida();
+			break;
+		case 3:
+			menuPrincipal ();
+			break;
+	}
+	
+}
+
+
+
+
+
+player findPlayerById(int findId) {
+    ifstream file("db.json");
+    string line;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string token;
+
+        // Parse ID
+        getline(ss, token, ',');
+        int id = stringToInt(token.substr(token.find(":") + 1));
+
+        if (id == findId) {
+            // Parse remaining fields
+            getline(ss, token, ','); // lvl
+            int lvl = stringToInt(token.substr(token.find(":") + 1));
+
+            getline(ss, token, ','); // code
+            int code = stringToInt(token.substr(token.find(":") + 1));
+
+            getline(ss, token, ','); // toros
+            int toros = stringToInt(token.substr(token.find(":") + 1));
+
+            getline(ss, token, ','); // vacas
+            int vacas = stringToInt(token.substr(token.find(":") + 1));
+
+            getline(ss, token, ','); // intentos
+            int intentos = stringToInt(token.substr(token.find(":") + 1));
+
+            getline(ss, token, ','); // user
+            string user = token.substr(token.find(":") + 2); // Remove space
+
+            getline(ss, token, ','); // pass
+            int pass = stringToInt(token.substr(token.find(":") + 1));
+
+            return player(user, pass, id, toros, vacas, lvl, intentos, code);
+        }
+    }
+
+    // Return a default player with all values set to 0 if not found
+    return player("Anonimo", 0, 0, 0, 0, 0, 0, 0);
+}
+
+int stringToInt(const string& str) {// para conversion gpt ayudo aqui
+    stringstream ss(str);
+    int number;
+    ss >> number;
+    return number;
+}
