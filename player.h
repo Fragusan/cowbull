@@ -4,58 +4,26 @@
 #include <string>
 
 class player {
-	private:
-		std::string user;
-		int pass;
-		int id;
-	public:
-		int toros;
-		int vacas;
-		int level;
-		int intentos;
-		int code;
-		
-	player(std::string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
+private:
+    std::string user;
+    std::string pass;
+    int id;
+public:
+    int toros;
+    int vacas;
+    int level;
+    int intentos;
+    std::string code;
+
+    player(std::string u = "Anonimo", std::string p = "0", int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, std::string c = "0")
         : user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c) {}
-        
-    void setUser(const std::string& u) {
-        user = u;
-    }
-
-    void setPass(int p) {
-        pass = p;
-    }
-
-    void setId(int i) {
-        id = i;
-    }
-
-    void setToros(int t) {
-        toros = t;
-    }
-
-    void setVacas(int v) {
-        vacas = v;
-    }
-
-    void setLevel(int l) {
-        level = l;
-    }
-
-    void setIntentos(int in) {
-        intentos = in;
-    }
-
-    void setCode(int c) {
-        code = c;
-    }
 
     // Getters
     std::string getUser() const {
         return user;
     }
 
-    int getPass() const {
+    std::string getPass() const {
         return pass;
     }
 
@@ -79,8 +47,41 @@ class player {
         return intentos;
     }
 
-    int getCode() const {
+    std::string getCode() const {
         return code;
+    }
+
+    // Setters
+    void setUser(const std::string& u) {
+        user = u;
+    }
+
+    void setPass(const std::string& p) {
+        pass = p;
+    }
+
+    void setId(int i) {
+        id = i;
+    }
+
+    void setToros(int t) {
+        toros = t;
+    }
+
+    void setVacas(int v) {
+        vacas = v;
+    }
+
+    void setLevel(int l) {
+        level = l;
+    }
+
+    void setIntentos(int in) {
+        intentos = in;
+    }
+
+    void setCode(const std::string& c) {
+        code = c;
     }
 };
 
