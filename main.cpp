@@ -55,8 +55,15 @@ void winner(int id);
 string invertirText(const string& txt);
 string intToString(int num);
 void cartelGanaste();
+int asignarId();
+bool tieneUser();
+void updatePlayer(int updateId, string newUser, string newPass, int newToros,
+                  int newVacas, int newLvl, int newIntentos, string newCode);
+                  
+                  //int updateId, const string &newUser = "", const string &newPass = "", int newToros = -1, int newVacas = -1, int newLvl = -1, int newIntentos = -1, const string &newCode = ""
 
-static int acc=0;
+
+static bool userIsOld=false; //la intentaremos usar para definir si es la primera vez o no de un jugador 
 
 
 int main() {
@@ -358,7 +365,7 @@ void logoText(){
     gotoxy(8, 5);printf("   VVV    AA   AA  CCCCC  AA   AA  SSSSS       TTT    OOOO0  RR   RR  OOOO0   SSSSS\n");
 }
 
-void cartelGanaste() {//comienzan en 33 en x y ocupan 13-15 en y
+void cartelGanaste() {//comienzan en 33 en x y ocupan 13-15 en y, usa asci extendidos
     gotoxy(33, 13);
     printf("%c%c%c%c %c%c%c%c %c%c %c %c%c%c%c %c%c%c%c %c%c%c%c%c %c%c%c%c\n", 201, 205,205, 187, 201, 205, 205, 187, 201, 187, 201, 201, 205, 205, 187, 201, 205, 205, 187, 201, 205, 203, 205, 187, 201, 205, 205, 187);
     gotoxy(33, 14);
@@ -413,6 +420,7 @@ void salida(){
 			textoCentro("SU ALMA SE VENDIÓ AL DIABLO DE MANERA SATISFACTORIA", 13);
 			//cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
 			gotoxy(20, 24);
+			userIsOld=false;
 			Sleep(650);
 			exit(0);
 			break;
@@ -424,43 +432,131 @@ void salida(){
 	
 }
 
+int asignarId(){
+	int accID=0;
+	
+	ifstream archivoLectura("db.json", ios::app);
+	if(archivoLectura.is_open()){
+		string renglon;
+		while (getline(archivoLectura, renglon)){
+			accID+=1;
+		}
+		archivoLectura.close();
+	}
+	return accID;
+}
+
+bool tieneUser(){
+	return userIsOld;
+}
+
+void updatePlayer(int updateId, string newUser, string newPass, int newToros,
+                  int newVacas, int newLvl, int newIntentos, string newCode){
+				  
+
+        fstream archivoR("db.json", ios::in | ios::out); // se lo llama en modo lectura y escritura
+        string renglon; //line
+        streampos posPrev; //prevPos;
+                  	
+            while (getline(archivoR, renglon)) {
+                stringstream ss(renglon);
+                string token;//variable de txt para almacenar la info
+                  		
+                posPrev = archivoR.tellg();
+        		posPrev -= renglon.length() + 1; // Ajusta para nueva línea
+        				
+        		getline(ss, token, ',');
+        				
+        		int id = stringToInt(token.substr(token.find(":") + 2));
+        				
+        		if (id == updateId) {
+            		userIsOld = true; //mueve la bandera a que si existe un user con ese id
+            				
+            			getline(ss, token, ','); // lvl
+						int lvl = newLvl == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newLvl;
+
+            			getline(ss, token, ','); // code
+           				string code = newCode.empty() ? token.substr(token.find(":") + 2) : newCode;
+
+           				getline(ss, token, ','); // toros
+            			int toros = newToros == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newToros;
+
+            			getline(ss, token, ','); // vacas
+            			int vacas = newVacas == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newVacas;
+
+            			getline(ss, token, ','); // intentos
+            			int intentos = newIntentos == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newIntentos;
+
+            			getline(ss, token, ','); // user
+            			string user = newUser.empty() ? token.substr(token.find(":") + 2) : newUser;
+
+            			getline(ss, token, ','); // pass
+            			string pass = token.substr(token.find(":") + 2); // este no se modifica
+            				
+            				
+        				player usuarioModificado;
+			            usuarioModificado.setUser(user);
+			            usuarioModificado.setPass(pass);
+			            usuarioModificado.setId(id);
+			            usuarioModificado.setToros(toros);
+			            usuarioModificado.setVacas(vacas);
+			            usuarioModificado.setLevel(lvl);
+			            usuarioModificado.setIntentos(intentos);
+			            usuarioModificado.setCode(code);
+				            
+			            archivoR.seekp(posPrev);
+			            
+			            archivoR << "ID: " << usuarioModificado.getId()
+			                 << ", lvl : " << usuarioModificado.getLevel()
+			                 << ", code : " << usuarioModificado.getCode()
+			                 << ", toros: " << usuarioModificado.getToros()
+			                 << ", vacas: " << usuarioModificado.getVacas()
+			                 << ", intentos : " << usuarioModificado.getIntentos()
+			                 << ", user : " << usuarioModificado.getUser()
+			                 << ", pass :" << usuarioModificado.getPass() << "\n";
+			                 
+			            break;
+            				
+            			}
+        				
+					  }
+					archivoR.close();
+}
+
 void startGame (){
 	int opc;
-	int id;
-	int accID=0;
-	//leer el archivo y contar las lineas y usar eso como valor de id;
-	ifstream archivoL("db.json", ios::app);
-	if(archivoL.is_open()){
-		string linea;
-		while (getline(archivoL, linea)) {
-            accID= accID+1;
-        }
-        archivoL.close();
-	}
-	
+	int id= asignarId();
+	//replantear con la nueva funcnion que modifica  y la variable estatica (-1 para primera ejecucion)
 	
 	player p1;// se instancia de manera generica
+	
 	//se tuvo que realizar está implementacion adiconal porque 
 	//cualquiera de los dos codigos si terminaban en 0 no los almacenaba
+	
+	//para el code del juego
 	string code= generarNum(p1.getLevel()); //genera un codigo aleatorio  de 3 cifras
 	stringstream codeFormateado;
 	codeFormateado << setw(3) << setfill('0') << code;
 	string codeString = codeFormateado.str();
 	p1.setCode(codeString); //seteado code verificado
 	
+	//para el pass del usuario (se esta seteando contraseñas sin tener una función de hash lo cual es un error grave de seguridad)
 	string pass=generarNum(6);
 	stringstream passFormateada;
 	passFormateada << setw(6) << setfill('0') << pass;
 	string passString = passFormateada.str();
-	p1.setPass(invertirText(passString)); //seteado pass verificado que cumpla con la contidad de digitos
-	id=p1.getId();
+	p1.setPass(invertirText(passString)); //seteado pass verificado que cumpla con la contidad de digitos y le damos vuelta
+	
+	//el id se asgina de manera ascendente por orden de jugada
+	p1.setId(id);
+	Sleep(150); //intentando que suelte el archivo en lectura para escritura
+	
 	//player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
         //: user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c)
     //guardamos en archivo con los nuevos valores seteados
 	ofstream archivoE("db.json", ios::app);
     if(archivoE.is_open()){
     
-    	p1.setId(accID);
     	archivoE << "ID: "<< p1.getId() <<", lvl : 3, code : " << p1.getCode() << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser() << ", pass :" << p1.getPass() << ",\n"; 
 		archivoE.close();
 		
@@ -513,7 +609,7 @@ void startGame (){
 			salida();
 			break;
 		case 1:
-			intento(accID);
+			intento(id);
 			break; 
 		case 2:
 			changeUserName();
@@ -830,10 +926,11 @@ player findPlayerById(int findId) {
 }
 
 int stringToInt(const string& str) {// para conversion gpt ayudo aqui
-    stringstream ss(str);
+    /*stringstream ss(str);
     int number;
     ss >> number;
-    return number;
+    return number;*/
+    return stoi(str); // MODIFICADO POR ACTUALIZACIÓN A C++ V11
 }
 
 string intToString(int num) {
@@ -880,6 +977,7 @@ void looser (int id){
 			textoCentro("QUE RARO ABANDONANDO... ", 13);
 			//cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
 			gotoxy(20, 24);
+			userIsOld=false;
 			Sleep(700);
 			exit(0);
 			break;
