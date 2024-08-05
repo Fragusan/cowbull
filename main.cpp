@@ -13,11 +13,11 @@
 #include <fstream> // para leer y escribir archivos
 #include <conio.h> //para usar la función kbhit() que detecta las teclas que se presionan
 #include <vector> // para manejar vectores
-#include <algorithm> //para utilizar count()
+#include <algorithm> //para utilizar count() y reverse ();
 //#include "dnc/JSON.hpp" //para manipular json  https://github.com/joaquinrmi/JSON/tree/master
 #include <sstream> // para trabajar con escritura de archivo y conversion/ serializacion
-#include <string> // idem de 18
 # include <cctype> //poder utilizar uppercase
+#include <iomanip> // paqra utilizar setw en la verificacion del tamaño de los numeros generados
 #include "Player.h"
 
 using namespace std;
@@ -41,101 +41,27 @@ void logoText(); // pinta el logo en texto ascii
 void dibujoVaquita(); // pinta imagen ascii
 void salida();// menu para finalizar el programa
 void startGame ();//menu de preinicio de juego
-int generarNum(int lvl); // genera cifras aleatorias sin repetir la cifra
+//int generarNum(int lvl); // genera cifras aleatorias sin repetir la cifra
+string generarNum(int lvl);
 void changeUserName();
 void cuadrito(int xs, int ys, int xe, int ye, int esquina1, int esquina2, int esquina3, int esquina4);
 int stringToInt(const string& str);
 void intento (int id);
 int stringToInt(const string& str);
 //player findPlayerById(int findId) ;
-
+void looser (int id);
+char* stringToChar(string str);
+void winner(int id);
+string invertirText(const string& txt);
+string intToString(int num);
+void cartelGanaste();
 
 static int acc=0;
-
-/*class player {
-	private:
-		string user;
-		int pass;
-		int id;
-	public:
-		int toros;
-		int vacas;
-		int level;
-		int intentos;
-		int code;
-		
-	player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
-        : user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c) {}
-        
-    void setUser(const string& u) {
-        user = u;
-    }
-
-    void setPass(int p) {
-        pass = p;
-    }
-
-    void setId(int i) {
-        id = i;
-    }
-
-    void setToros(int t) {
-        toros = t;
-    }
-
-    void setVacas(int v) {
-        vacas = v;
-    }
-
-    void setLevel(int l) {
-        level = l;
-    }
-
-    void setIntentos(int in) {
-        intentos = in;
-    }
-
-    void setCode(int c) {
-        code = c;
-    }
-
-    // Getters
-    string getUser() const {
-        return user;
-    }
-
-    int getPass() const {
-        return pass;
-    }
-
-    int getId() const {
-        return id;
-    }
-
-    int getToros() const {
-        return toros;
-    }
-
-    int getVacas() const {
-        return vacas;
-    }
-
-    int getLevel() const {
-        return level;
-    }
-
-    int getIntentos() const {
-        return intentos;
-    }
-
-    int getCode() const {
-        return code;
-    }
-};*/
 
 
 int main() {
 	sinMaximVentana();
+	SetConsoleTitle("Jugando VACAS TOROS");
 	system("mode con: cols=100 lines=30");
 	system("color 70");
     // Configurar la localización inicial a Spanish
@@ -292,33 +218,49 @@ void menuPrincipal (){
 		gotoxy(20, 15);printf("0. SALIR");
 		gotoxy(20, 17);printf("OPCIÓN SELECCIONADA: -> ");
 		showCur();
+		alternarLocale();
 		scanf("%i", &opc);
-	}while (opc<0 || opc > 7);
+	}while (opc<0 || opc > 5);
 
 	switch(opc){
 		case 0:
 			salida();
 			break;
 		case 1:
-			alternarLocale();
 			charger("CARGANDO NUEVA SESIÓN...");
 			alternarLocale();
 			startGame();
 			break;
 		case 2:
-			printf("segunda opcion");
+			alternarLocale();
+			textoCentro("OPCION AÚN NO DISPONIBLE", 18);
+			Sleep(600);
+			alternarLocale();
+			menuPrincipal();
 			break;
 		case 3:
-			printf("tercera opcion");
+			alternarLocale();
+			textoCentro("OPCION AÚN NO DISPONIBLE", 18);
+			Sleep(600);
+			alternarLocale();
+			menuPrincipal();
 			break;
 		case 4:
-			printf("cuarta opcion");
+			alternarLocale();
+			textoCentro("OPCION AÚN NO DISPONIBLE", 18);
+			Sleep(600);
+			alternarLocale();
+			menuPrincipal();
 			break;
 		case 5:
 			rules();
 			break;
-		case 6:
-			alternarLocale();
+		default :
+			cout << WINE;
+			textoCentro("OPCION INGRESADA NO VÁLIDA", 7);
+			cout << BLACK;
+			Sleep(600);
+			menuPrincipal();
 			break;
 	}
 }
@@ -336,7 +278,6 @@ void rules(){
 
 	do{
 	system("cls");
-	alternarLocale();
 	margen();
 	titulo();
 	textoCentro("MENU AYUDA",5);
@@ -358,7 +299,7 @@ void rules(){
 		gotoxy(20, 23);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
 		gotoxy(20, 24);printf("0. SALIR");
 		showCur();
-		gotoxy(20, 26);printf("OPCIÓN SELECCIONADA: ->");
+		gotoxy(20, 26);printf("OPCIÓN SELECCIONADA: -> ");
 		alternarLocale();
 		scanf("%i", &opc);
 		
@@ -366,7 +307,6 @@ void rules(){
 	
 	switch(opc){
 		case 0:
-			alternarLocale();
 			salida();
 			break;
 		case 1:
@@ -378,11 +318,11 @@ void rules(){
 	system("pause");
 }
 
+
 void parpadeo(const char* txt, int y) {// chat gpt me ayudo
     bool show = true;
     int longitud = strlen(txt);
     char* espacio = new char[longitud + 1]; // +1 para el carácter nulo
-
     // Rellena el array con espacios y añade el carácter nulo al final
     memset(espacio, ' ', longitud);
     espacio[longitud] = '\0';
@@ -396,7 +336,6 @@ void parpadeo(const char* txt, int y) {// chat gpt me ayudo
                 break;
             }
         }
-
         if (show) {
             textoCentro(const_cast<char*>(txt), y);
         } else {
@@ -408,7 +347,6 @@ void parpadeo(const char* txt, int y) {// chat gpt me ayudo
         // Mueve el cursor hacia atrás para sobreescribir el texto
         gotoxy(0, y);
     }
-
     delete[] espacio; // Libera la memoria 
 }
 
@@ -418,6 +356,15 @@ void logoText(){
     gotoxy(8, 3); printf(" VV   VV  AA   AA CC      AA   AA  SSSSS       TTT   OO   OO RRRRRR  OO   OO  SSSSS  \n");
     gotoxy(8, 4); printf("  VV VV   AAAAAAA CC    C AAAAAAA      SS      TTT   OO   OO RR  RR  OO   OO      SS \n");
     gotoxy(8, 5);printf("   VVV    AA   AA  CCCCC  AA   AA  SSSSS       TTT    OOOO0  RR   RR  OOOO0   SSSSS\n");
+}
+
+void cartelGanaste() {//comienzan en 33 en x y ocupan 13-15 en y
+    gotoxy(33, 13);
+    printf("%c%c%c%c %c%c%c%c %c%c %c %c%c%c%c %c%c%c%c %c%c%c%c%c %c%c%c%c\n", 201, 205,205, 187, 201, 205, 205, 187, 201, 187, 201, 201, 205, 205, 187, 201, 205, 205, 187, 201, 205, 203, 205, 187, 201, 205, 205, 187);
+    gotoxy(33, 14);
+    printf("%c  %c %c%c%c%c %c%c%c%c %c%c%c%c %c%c%c%c   %c   %c%c%c\n", 186, 203, 204, 205, 205, 185, 186, 92, 92, 186, 204, 205, 205, 185, 200, 205, 205, 187, 186, 204, 205, 185);
+    gotoxy(33, 15);
+    printf("%c%c%c%c %c  %c %c %c%c %c  %c %c%c%c%c   %c   %c%c%c%c\n", 200, 205, 205, 188, 202, 202, 202, 200, 188, 202, 202, 200, 205, 205, 188, 202, 200, 205, 205, 188);
 }
 
 void dibujoVaquita(){
@@ -444,7 +391,6 @@ void salida(){
 	do{
 	system("cls");
 	system("color 40");
-	alternarLocale();
 	margen();
     logoText();
     textoCentro("MENU SALIR",8);
@@ -457,7 +403,7 @@ void salida(){
 		gotoxy(20, 20);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
 		gotoxy(20, 21);printf("0. SALIR");
 		showCur();
-		gotoxy(20, 23);printf("OPCIÓN SELECCIONADA: ->");
+		gotoxy(20, 23);printf("OPCIÓN SELECCIONADA: -> ");
 		scanf("%i", &opc);
 	}while (opc<0 || opc > 1);
 	
@@ -493,16 +439,29 @@ void startGame (){
 	}
 	
 	
-	player p1;
-	p1.setPass(generarNum(6));
+	player p1;// se instancia de manera generica
+	//se tuvo que realizar está implementacion adiconal porque 
+	//cualquiera de los dos codigos si terminaban en 0 no los almacenaba
+	string code= generarNum(p1.getLevel()); //genera un codigo aleatorio  de 3 cifras
+	stringstream codeFormateado;
+	codeFormateado << setw(3) << setfill('0') << code;
+	string codeString = codeFormateado.str();
+	p1.setCode(codeString); //seteado code verificado
+	
+	string pass=generarNum(6);
+	stringstream passFormateada;
+	passFormateada << setw(6) << setfill('0') << pass;
+	string passString = passFormateada.str();
+	p1.setPass(invertirText(passString)); //seteado pass verificado que cumpla con la contidad de digitos
 	id=p1.getId();
 	//player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
         //: user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c)
-    ofstream archivoE("db.json", ios::app);
+    //guardamos en archivo con los nuevos valores seteados
+	ofstream archivoE("db.json", ios::app);
     if(archivoE.is_open()){
     
     	p1.setId(accID);
-    	archivoE << "ID: "<< p1.getId() <<", lvl : 3, code : " << generarNum(p1.getLevel()) << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser() << ", pass :" <<p1.getPass() << ",\n"; 
+    	archivoE << "ID: "<< p1.getId() <<", lvl : 3, code : " << p1.getCode() << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser() << ", pass :" << p1.getPass() << ",\n"; 
 		archivoE.close();
 		
 	}else{
@@ -517,30 +476,37 @@ void startGame (){
 	titulo();
 	textoCentro("NUEVA PARTIDA",5);
 	textoCentro("*********************",6);
+	cout << WINE;
+	textoCentro("ADVERTENCIA: LAS OPCIONES EN ROJO DE ESTE MENU PUEDEN FALLAR",7);
+	cout << BLACK;
 	// recuadro 9- 19
 	cuadrito(18,8,78,16);
 	alternarLocale();
-	gotoxy(20, 9); cout << "Se te asigno el "<< BG_CYAN "ID N° " << p1.getId() << BG_COW;//
+	gotoxy(20, 9); cout << "Se te asigno el "<<WHITE BG_CYAN "ID N° " << p1.getId() << BG_COW BLACK;//
 	// int generarNum(6);
 	gotoxy(20, 10); cout << "Tu contraseña será: " << GREEN << p1.getPass() << BLACK;
-	gotoxy(20,11); cout << "Recuerda estas credenciales para poder acceder a las" ;
-	gotoxy(20,12); cout << "estadísticas de tu progreso.";
+	gotoxy(20,12); cout << ORANGE; parpadeo("Ingrese su nombre de usuario", 12); cout << BLACK;
+	hiddenCur();
+	gotoxy(20,12); cout << "Recuerda estas credenciales para poder acceder a las" ;
+	gotoxy(20,13); cout << "estadísticas de tu progreso.";
 	gotoxy(20,14); cout << "Si no ingresas un nombre de usuario jugaras como '"<< BG_ORANGE << p1.getUser() << BG_COW << "'" ;
 	gotoxy(20,15); cout << "¿Estás listo para comenzar en el nivel " << p1.getLevel() <<" ?";
 	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
 	
 	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 17);
 		gotoxy(20, 19);printf("1. INICIAR PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		cout << WINE;
 		gotoxy(20, 20);printf("2. MODIFICAR EL NOMBRE DE USUARIO");
 		gotoxy(20, 21);printf("3. MODIFICAR NIVEL");
-		gotoxy(20, 22);printf("4. ESTE NO ES MI USUARIO");
+		gotoxy(20, 22);printf("4. ESTE NO ES MI USUARIO");//
+		cout << BLACK;
 		gotoxy(20, 23);printf("0. SALIR");
 		showCur();
 		gotoxy(20, 25);printf("OPCIÓN SELECCIONADA: -> ");
 		alternarLocale();
 		scanf("%i", &opc);
 		
-	}while(opc<0 || opc > 3);
+	}while(opc<0 || opc > 4);
 	switch(opc){
 		case 0:
 			alternarLocale();
@@ -549,38 +515,69 @@ void startGame (){
 		case 1:
 			intento(accID);
 			break; 
-			
 		case 2:
 			changeUserName();
+			break;
+		case 3:
+			cout << WHITE << BG_WINE;
+			textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
+			textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
+			cout << BLACK << BG_COW;
+			Sleep(1250);
+			menuPrincipal ();
+			break;
+		case 4:
+			cout << WHITE << BG_WINE;
+			textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
+			textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
+			cout << BLACK << BG_COW;
+			Sleep(1250);
+			menuPrincipal ();
+			break;
+		default:
+			cout << WHITE << BG_WINE;
+			textoCentro("LA OPCIÓN SELECCIONADA FUERA DE RANGO",23);
+			cout << BLACK << BG_COW;
+			Sleep(1250);
+			menuPrincipal ();
 			break;
 	}
 }
 
-int generarNum(int lvl){
+
+string invertirText(const string& txt){
+	string alReves=txt;
+	int n= alReves.length();
+	for( int i=0; i< n/2; i++){
+		swap(alReves[i], alReves[n-i-1]);
+	}
+	return alReves;
+}
+
+string generarNum(int lvl){
 	srand(static_cast<unsigned int>(time(NULL)));// uso del time para generar una semillita jaja
 	vector<int> digitos;
-	
 	while (digitos.size()< static_cast<size_t>(lvl)){// se analiza el tamaño del vector comparandolo contra  el lvl que es convertido para poder comparar
 		int digito = rand() % 10;
 		if(count (digitos.begin(), digitos.end(), digito) == 0){// count se fija cuantas veces aparece, se pone el rango en inicio y fin, 
 			digitos.push_back(digito);
 		}
 	}
-	
-	int numero =0;
+	//int numero =0;
 	/*for(int digito : digito){
 		numero = numero *10 + digito;
 	}*/
-	
-	for (size_t i = 0; i < digitos.size(); ++i) {
+	/*for (size_t i = 0; i < digitos.size(); ++i) {
     numero = numero * 10 + digitos[i];
-}
-
-	
+}*/
+	string numero;
+	for (size_t i=0; i< digitos.size();i++){
+		numero = numero + to_string(digitos[i]);
+	}
 	return numero;
 }
 
-void changeUserName(){
+void changeUserName(){ // revisar el cambio en el constructor
 	int opc;
 	int IDFind;
 	int passFind;
@@ -615,7 +612,8 @@ void changeUserName(){
 	
 	if( !(passFind >= 102345 && passFind <= 987654)){
 		gotoxy(20,13); cout << WINE <<"LA CONTRASEÑA DEBE SER DE 6 NÚMEROS";
-		Sleep(800);
+		gotoxy(20,14); cout << WINE <<"ASI TENÍA 5 CIFRAS, AGREGÁ 0 AL FINAL";
+		Sleep(1500);
 		alternarLocale();
 		cout << BLACK;
 		changeUserName();
@@ -635,31 +633,44 @@ void changeUserName(){
 	}while(opc<0 || opc > 3);
 	switch(opc){
 		case 0:
-			alternarLocale();
 			salida();
 			break;
+		case 1:
+		cout << WINE ;
+		textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
+		textoCentro("SE REDIRECCIONARA  AL MENU PRINCIPAL", 24);
+		cout << BLACK;
+		Sleep(1250);
+		menuPrincipal ();
+		break;
+		case 2:
+		cout << WINE ;
+		textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
+		textoCentro("SE REDIRECCIONARA  AL MENU PRINCIPAL", 24);
+		cout << BLACK;
+		Sleep(1250);
+		menuPrincipal ();
+		break;
 		case 3:
 			menuPrincipal ();
 			break;
 	}
 }
-//int level (int lvl){
-	
-	//return 8
-//}
 
 void intento (int id){
 	char opc;
+	int intento=0;
 	player pp=findPlayerById(id);
 	
 	do{
 	
 	system("cls");
+	system("color 70");
 	margen();
 	titulo();
-	gotoxy(38,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
+	gotoxy(36,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
 	textoCentro("*********************",6);
-	gotoxy(38,7); cout << "USER: " << pp.getUser() << pp.getCode();
+	gotoxy(38,7); cout << "USER: " << pp.getUser() << " "<< pp.getCode();
 	gotoxy(38,9); cout << pp.getCode();
 	// recuadro 9- 19
 	cuadrito(18,8,78,11);
@@ -685,14 +696,14 @@ void intento (int id){
 			} else {
     			cout << WHITE BG_RED;
 			}
-				cout << pp.getVacas() << " VACAS" << BLACK BG_COW <<" ";
+				cout << pp.getVacas() << " VACAS " << BLACK BG_COW <<" ";
 
 			if (pp.getToros() > 1) {
     			cout << BG_LGREEN;
 			} else {
     			cout << WHITE BG_RED;
 			}
-				cout << pp.getToros() << " TOROS" << BLACK BG_COW;;
+				cout << pp.getToros() << " TOROS " << BLACK BG_COW;;
 	
 	alternarLocale();
 	cuadrito(18,11,78,14, 204,185,188,200);//segundo cuadrito
@@ -707,12 +718,14 @@ void intento (int id){
 		cout << BLACK;
 		changeUserName();
 	}*/
-	
-	gotoxy(19,16);printf("Usa las teclas asignadas para seleccionar las opciones");
+		cout << WINE;
+		textoCentro( "EN ESTE MENU LAS OPCIONES SON CON LETRAS",15);
+		cout << BLACK;
+		gotoxy(19,16);printf("Usa las teclas asignadas para seleccionar las opciones");
 		gotoxy(19, 18);printf("T. INGRESAR INTENTO");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
 		gotoxy(19, 19);printf("L. RENDIRSE (LOOOSER)");
 		gotoxy(19, 20);printf("B. VOLVER AL MENU PRINCIPAL");
-		gotoxy(19, 21);printf("S. SALIR");
+		gotoxy(19, 21);printf("E. SALIR");
 		showCur();
 		gotoxy(20, 13);
 		alternarLocale();
@@ -724,36 +737,53 @@ void intento (int id){
 		
 		if(isdigit(opc)){
 			//lo que pasará con el digito ingresado
-			gotoxy(19,15); cout << WINE << "es un digito" << BLACK;
-		}else if(isalpha(opc)){
+			string numIngresado(1, opc);
+			
+			//convertimos el int a string del codigo asignado
+			ostringstream oss;
+    		oss << pp.getCode();
+    		string codeAdivinar = oss.str();
+    		
+			if(codeAdivinar == numIngresado){
+				//caso de que adivine en el primer acierto
+				winner(id);
+			}
+			if(!(codeAdivinar.length() == numIngresado.length())){
+
+				cout << WINE;
+				gotoxy(20, 9); cout << "Debes adivinar un N° de " << pp.getLevel() << " cifras.";
+				cout << BLACK;
+				Sleep(1500);
+				startGame();//llamada recursiva que no me pertmite
+			}
+			
+			}else if(isalpha(opc)){
 			opc= toupper(opc);
 			switch (opc){
 				case 'T':
-					//algo
+					winner(id);//algo
 					break;
 				case 'L':
-					//rendirse
+					looser(id);
 					break;
 				case 'B':
 					menuPrincipal();
 					break;
-				case 'S':
+				case 'E':
 					salida();
 					break;
 				default:
 					gotoxy(19,15); cout << WINE << "LA LETRA INGRESADA NO ES UNA OPCIÓN VÁLIDA" << BLACK;
-					intento(id);
+					startGame();//intento(id); // llamada recursiva que no me permite
 					break;
 			}
 		}else{
 			gotoxy(19,15); cout << WINE << "LA OPCIÓN INGRESADA NO ES VÁLIDA" << BLACK;
-			intento(id);
+			Sleep(1500);
+			startGame();//intento(id);
 		}
 	
 }
-
-
-
 
 
 player findPlayerById(int findId) {
@@ -774,7 +804,7 @@ player findPlayerById(int findId) {
             int lvl = stringToInt(token.substr(token.find(":") + 1));
 
             getline(ss, token, ','); // code
-            int code = stringToInt(token.substr(token.find(":") + 1));
+            string code = token.substr(token.find(":") + 1);
 
             getline(ss, token, ','); // toros
             int toros = stringToInt(token.substr(token.find(":") + 1));
@@ -789,14 +819,14 @@ player findPlayerById(int findId) {
             string user = token.substr(token.find(":") + 2); // Remove space
 
             getline(ss, token, ','); // pass
-            int pass = stringToInt(token.substr(token.find(":") + 1));
+            string pass = token.substr(token.find(":") + 1);
 
             return player(user, pass, id, toros, vacas, lvl, intentos, code);
         }
     }
 
     // Return a default player with all values set to 0 if not found
-    return player("Anonimo", 0, 0, 0, 0, 0, 0, 0);
+    return player("Anonimo", "0", 0, 0, 0, 0, 0, "0");
 }
 
 int stringToInt(const string& str) {// para conversion gpt ayudo aqui
@@ -804,4 +834,126 @@ int stringToInt(const string& str) {// para conversion gpt ayudo aqui
     int number;
     ss >> number;
     return number;
+}
+
+string intToString(int num) {
+    stringstream ss;
+    ss << num;
+    return ss.str();
+}
+
+void looser (int id){
+	
+	int opc;
+	player pp=findPlayerById(id);
+	string sUser=pp.getUser();
+	char* user= stringToChar(sUser);
+	
+	do{
+	system("cls");
+	system("color 40");
+	margen();
+    logoText();
+    textoCentro("MENU RENDIRSE",8);
+	textoCentro("*********************",9);
+	cuadrito(22,11,78,16);//13
+	alternarLocale();
+	cout << BG_COW WINE;
+	textoCentro(user,12);
+	cout << BLACK BG_RED;
+	textoCentro(" ESTÁS A PUNTO DE RENDIRTE", 14);
+	delete [] user; //liberamos memoria
+	//gotoxy(35,13); cout << BG_COW WINE << pp.getUser() << BLACK  BG_RED << " ESTÁS A PUNTO DE RENDIRTE"  ;
+	textoCentro("¿NO DESEAS PENSARLO DE NUEVO?", 15);
+	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 18);
+		gotoxy(20, 20);printf("1. VOLVER AL MENÚ PRINCIPAL");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+		gotoxy(20, 21);printf("2. RETOMAR EL JUEGO");
+		gotoxy(20, 22);printf("0. SALIR");
+		showCur();
+		gotoxy(20, 24);printf("OPCIÓN SELECCIONADA: -> ");
+		scanf("%i", &opc);
+	}while (opc<0 || opc > 2);
+	
+	switch(opc){
+		case 0:
+			cout << "" << WHITE << endl ;
+			textoCentro("QUE RARO ABANDONANDO... ", 13);
+			//cout << "\033[48;2;204;204;204m\033[38;2;12;12;12m"  ;
+			gotoxy(20, 24);
+			Sleep(700);
+			exit(0);
+			break;
+		case 1:
+			alternarLocale();
+			menuPrincipal();
+			break;
+		case 2:
+			alternarLocale();
+			intento(id);
+			break;
+	}
+}
+
+char* stringToChar(string str){
+	char* txt= new char[str.length()+1]; //claramente utilizamnos un constructor para reservar espacio en memoria para un arreglo char de la longitud del texto mas 1 que es donde finaliza
+	strcpy(txt, str.c_str());
+	return txt; //devuelve un puntero al arreglo de caractteres
+}
+
+void winner(int id){//TERMINADO
+	int opc;
+	player pp=findPlayerById(id);
+	int lvl=pp.getLevel();
+	string msj1= "JUGANDO EN EL NIVEL ";
+	string msj2= msj1 + stringToChar(intToString(lvl));
+	string msj3="EL NÚMERO SECRETO ERA: ";
+	string msj4= msj3 + stringToChar(pp.getCode());
+	
+	do{
+	system("cls");
+	system("color 27");
+	margen();
+	logoText();
+	textoCentro(stringToChar(msj2),8);
+	textoCentro("*********************",9);
+	cout << "" << BG_LYELLOW BLACK;
+	textoCentro(stringToChar(pp.getUser()) ,11);
+	cout << "" << BG_GREEN WHITE;
+	cartelGanaste();//14-16
+	cuadrito(20,10,80,17);
+	alternarLocale();
+	cout << "" << BG_LYELLOW BLACK;
+	textoCentro(stringToChar(msj4),16);
+	cout << "" << BG_GREEN WHITE;
+	//menu 19
+	gotoxy(20, 19); printf("Usa el teclado númerico para seleccionar una de las opciones");
+	gotoxy(20, 21);printf("1. JUGAR UNA NUEVA PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
+	gotoxy(20, 22);printf("2. VOLVER AL MENU PRINCIPAL");
+	gotoxy(20, 23);printf("0. SALIR");
+	showCur();
+	gotoxy(20, 25);printf("OPCIÓN SELECCIONADA: -> ");
+	scanf("%i", &opc);
+	
+	}while (opc<0 || opc > 2);
+	
+	switch(opc){
+		case 0:
+			alternarLocale();
+			salida();
+			break;
+		case 1:
+			alternarLocale();
+			intento(id);
+			break;
+		case 2:
+			alternarLocale();
+			menuPrincipal();
+			break;
+		default:
+			//24
+			cout << WINE;
+			textoCentro("LA OPCIÓN SELECCIONADA NO ES VALIDA", 18);
+			break;
+	}
+	
 }
