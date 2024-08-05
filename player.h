@@ -87,4 +87,13 @@ public:
 
 player findPlayerById(int searchId);
 
+/*
+se intento con valores predeterminados por defecto, pero no los tomo
+void updatePlayer(int updateId, const std::string &newUser = "", const std::string &newPass = "", int newToros = -1,
+                  int newVacas = -1, int newLvl = -1, int newIntentos = -1, const std::string &newCode = "");
+				  
+*/
+
+
+
 #endif // Termina la protección del archivo de encabezado
