@@ -366,11 +366,11 @@ void logoText(){
 }
 
 void cartelGanaste() {//comienzan en 33 en x y ocupan 13-15 en y, usa asci extendidos
-    gotoxy(33, 13);
+    gotoxy(33, 12);
     printf("%c%c%c%c %c%c%c%c %c%c %c %c%c%c%c %c%c%c%c %c%c%c%c%c %c%c%c%c\n", 201, 205,205, 187, 201, 205, 205, 187, 201, 187, 201, 201, 205, 205, 187, 201, 205, 205, 187, 201, 205, 203, 205, 187, 201, 205, 205, 187);
-    gotoxy(33, 14);
+    gotoxy(33, 13);
     printf("%c  %c %c%c%c%c %c%c%c%c %c%c%c%c %c%c%c%c   %c   %c%c%c\n", 186, 203, 204, 205, 205, 185, 186, 92, 92, 186, 204, 205, 205, 185, 200, 205, 205, 187, 186, 204, 205, 185);
-    gotoxy(33, 15);
+    gotoxy(33, 14);
     printf("%c%c%c%c %c  %c %c %c%c %c  %c %c%c%c%c   %c   %c%c%c%c\n", 200, 205, 205, 188, 202, 202, 202, 200, 188, 202, 202, 200, 205, 205, 188, 202, 200, 205, 205, 188);
 }
 
@@ -757,6 +757,8 @@ void intento (int id){
 	char opc;
 	int intento=0;
 	player pp=findPlayerById(id);
+	string vaquita=" VACA";
+	string torito=" TORO";
 	
 	do{
 	
@@ -766,6 +768,7 @@ void intento (int id){
 	titulo();
 	gotoxy(36,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
 	textoCentro("*********************",6);
+	//antes de ter,minar organizar en texto centro el user y quitar el code
 	gotoxy(38,7); cout << "USER: " << pp.getUser() << " "<< pp.getCode();
 	gotoxy(38,9); cout << pp.getCode();
 	// recuadro 9- 19
@@ -783,23 +786,36 @@ void intento (int id){
 			} else if (pp.getIntentos() >5 && pp.getIntentos() < 10){
 				cout << BG_ORANGE;
 			}else{
-				cout << BG_WINE;
+				cout << BG_WINE WHITE;
 			}
 				cout << "N° " << pp.getIntentos()<< "\t\t" << BG_COW;
 			
-			if (pp.getVacas() >= 1) {
-    			cout << BG_LYELLOW;
+			cout << BLACK BG_COW << "";
+			
+			
+			if (pp.getVacas() == 1) {
+    			cout << BG_LYELLOW BLACK;
+    			cout << pp.getVacas() << vaquita << " " << BLACK BG_COW ;
+			}else if( pp.getVacas() > 1){
+				cout << BG_LYELLOW BLACK;
+    			cout << pp.getVacas() << vaquita <<"S " << BLACK BG_COW ;
 			} else {
     			cout << WHITE BG_RED;
+    			cout << pp.getVacas() << vaquita <<"S " << BLACK BG_COW ;
 			}
-				cout << pp.getVacas() << " VACAS " << BLACK BG_COW <<" ";
-
-			if (pp.getToros() > 1) {
-    			cout << BG_LGREEN;
-			} else {
+			
+			cout << " ";
+			
+			if (pp.getToros() == 1) {
+    			cout << BG_LGREEN BLACK;
+    			cout << pp.getToros() << torito << " " << BLACK BG_COW ;
+			}else if(pp.getToros() > 1){
+				cout << BG_LGREEN BLACK;
+    			cout << pp.getToros() << torito << "S " << BLACK BG_COW ;
+			}else {
     			cout << WHITE BG_RED;
+    			cout << pp.getToros() << torito << "S " << BLACK BG_COW ;
 			}
-				cout << pp.getToros() << " TOROS " << BLACK BG_COW;;
 	
 	alternarLocale();
 	cuadrito(18,11,78,14, 204,185,188,200);//segundo cuadrito
@@ -1005,7 +1021,9 @@ void winner(int id){//TERMINADO
 	string msj1= "JUGANDO EN EL NIVEL ";
 	string msj2= msj1 + stringToChar(intToString(lvl));
 	string msj3="EL NÚMERO SECRETO ERA: ";
-	string msj4= msj3 + stringToChar(pp.getCode());
+	string msj4= msj3 + stringToChar(pp.getCode()) + " ";
+	string msj5="EN EL INTENTO N°";
+	string msj6= msj5 + stringToChar(intToString(pp.getIntentos())) + " ";
 	
 	do{
 	system("cls");
@@ -1022,6 +1040,9 @@ void winner(int id){//TERMINADO
 	alternarLocale();
 	cout << "" << BG_LYELLOW BLACK;
 	textoCentro(stringToChar(msj4),16);
+	cout << "" << BG_GREEN WHITE;
+	cout << "" << BG_ORANGE BLACK;
+	textoCentro(stringToChar(msj6),15); //cantidad de intentos realizados
 	cout << "" << BG_GREEN WHITE;
 	//menu 19
 	gotoxy(20, 19); printf("Usa el teclado númerico para seleccionar una de las opciones");
