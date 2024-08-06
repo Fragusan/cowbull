@@ -528,7 +528,6 @@ void updatePlayer(int updateId, string newUser, string newPass, int newToros,
             getline(ss, token, ','); // pass
             string pass = newPass.empty() ? obtenerValorDosPuntos(token) : newPass;
             trim(pass); // Eliminar espacios en blanco adicionales
-            cout << "Pass ahora es: " << pass << endl;
             
             if (pass.length() < 6) {
                 pass.insert(pass.begin(), 6 - pass.length(), '0'); // Rellenar con ceros al principio si es necesario
@@ -803,9 +802,12 @@ void intento (int id){
 	int nivel = pp.getLevel();
 	string vaquita=" VACA";
 	string torito=" TORO";
+	int cow;
+	int bull;
 	
 	while(true){
-	
+	cow=0;
+	bull=0;
 	system("cls");
 	system("color 70");
 	margen();
@@ -899,9 +901,32 @@ void intento (int id){
     code.erase(code.find_last_not_of(' ') + 1);
     opc.erase(0, opc.find_first_not_of(' '));
     opc.erase(opc.find_last_not_of(' ') + 1);
+    
+    //se calcula las vacas y toros del ingreso
+    
+    for (int i = 0; i < nivel; ++i) {
+            if (opc[i] == code[i]) {
+                bull++;
+            } else {
+                for (int j = 0; j < nivel; ++j) {
+                    if (opc[i] == code[j]) {
+                        cow++;
+                        break; // Una vez encontrado una coincidencia como vaca, salimos del bucle interno
+                    }
+                }
+            }
+        }
+    
+    //se actualiza los datos del jugador
+	tanteo++;
+	updatePlayer(pp.getId(), "", pp.getPass(), bull, cow, -1, tanteo, pp.getCode() );
+    	Sleep(1500);
+    	pp= findPlayerById(id);
 
     if (code == opc) {
         winner(pp.getId());
+		
+		
 		
 		}else {
 		cout << WINE;
@@ -910,13 +935,11 @@ void intento (int id){
     	alternarLocale();
     	cout << BLACK;
     	//alternarLocale();
-    	tanteo++;
+    	
 	//updatePlayer(int updateId, string newUser, string newPass, int newToros,
                   //int newVacas, int newLvl, int newIntentos, string newCode)
-    	updatePlayer(pp.getId(), "", pp.getPass(), -1, -1, -1, tanteo, pp.getCode() );
-    	Sleep(1500);
-    	pp= findPlayerById(id);
-    	continue;
+    	
+    	//continue;
 		}
 			} else if (opc.size() == 1 && isalpha(opc[0])){
 				char option = toupper(opc[0]);
