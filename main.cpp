@@ -36,7 +36,7 @@ void showCur(); // muestra el cursor
 void menuPrincipal(); // menu principal
 void rules(); // reglas
 int level (); // deberiamos construir un getter, un setter y un menu 
-void parpadeo(const char* txt, int y); // texto que parpadea
+void parpadeo(const char* txt, int y, char modo); // texto que parpadea
 void logoText(); // pinta el logo en texto ascii
 void dibujoVaquita(); // pinta imagen ascii
 void salida();// menu para finalizar el programa
@@ -61,7 +61,32 @@ void updatePlayer(int updateId, string newUser, string newPass, int newToros,
                   int newVacas, int newLvl, int newIntentos, string newCode);
                   
                   //int updateId, const string &newUser = "", const string &newPass = "", int newToros = -1, int newVacas = -1, int newLvl = -1, int newIntentos = -1, const string &newCode = ""
+string obtenerValorDosPuntos(const string& token);
+bool isNotSpace(unsigned char ch);
+inline void ltrim(std::string &s); //recorta desde el lado izquierdo
+inline void rtrim(std::string &s); // recorta desde el lado derecho
+inline void trim(std::string &s); // aplica ambas anteriores recortando los espacioes en blanco de ambos lados
 
+// Función auxiliar para verificar si un carácter es un espacio en blanco
+bool isNotSpace(unsigned char ch) {
+    return !std::isspace(ch);
+}
+
+// trim de inicio (in-place)
+inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotSpace));
+}
+
+// trim de final (in-place)
+inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), isNotSpace).base(), s.end());
+}
+
+// trim de ambos lados (in-place)
+inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
 
 static bool userIsOld=false; //la intentaremos usar para definir si es la primera vez o no de un jugador 
 
@@ -82,7 +107,7 @@ int main() {
 	dibujoVaquita();
 	
 	hiddenCur();
-	parpadeo("PRESIONA ENTER PARA INICIAR", 24);
+	parpadeo("PRESIONA ENTER PARA INICIAR", 24, 'e');
 	charger("CARGANDO JUEGO...");
 	
 	showCur();
@@ -326,19 +351,20 @@ void rules(){
 }
 
 
-void parpadeo(const char* txt, int y) {// chat gpt me ayudo
+void parpadeo(const char* txt, int y, char modo) {
     bool show = true;
     int longitud = strlen(txt);
     char* espacio = new char[longitud + 1]; // +1 para el carácter nulo
     // Rellena el array con espacios y añade el carácter nulo al final
-    memset(espacio, ' ', longitud);
+	memset(espacio, ' ', longitud);
     espacio[longitud] = '\0';
 
     while (true) {
         if (_kbhit()) {
             char ch = _getch();
-            if (ch == 13) { // solo si se presiona enter
-                // Limpia el texto antes de romper el bucle
+            if ((modo == 'e' && ch == 13) || // Enter
+                (modo == 'a') || // Cualquier tecla
+                (modo == 'n' && ch >= '0' && ch <= '9')) { // Tecla numérica
                 textoCentro(espacio, y);
                 break;
             }
@@ -351,10 +377,9 @@ void parpadeo(const char* txt, int y) {// chat gpt me ayudo
         show = !show;
 
         Sleep(500); // retardo
-        // Mueve el cursor hacia atrás para sobreescribir el texto
         gotoxy(0, y);
     }
-    delete[] espacio; // Libera la memoria 
+    delete[] espacio; // Libera la memoria
 }
 
 void logoText(){
@@ -450,194 +475,212 @@ bool tieneUser(){
 	return userIsOld;
 }
 
-void updatePlayer(int updateId, string newUser, string newPass, int newToros,
-                  int newVacas, int newLvl, int newIntentos, string newCode){
-				  
-
-        fstream archivoR("db.json", ios::in | ios::out); // se lo llama en modo lectura y escritura
-        string renglon; //line
-        streampos posPrev; //prevPos;
-                  	
-            while (getline(archivoR, renglon)) {
-                stringstream ss(renglon);
-                string token;//variable de txt para almacenar la info
-                  		
-                posPrev = archivoR.tellg();
-        		posPrev -= renglon.length() + 1; // Ajusta para nueva línea
-        				
-        		getline(ss, token, ',');
-        				
-        		int id = stringToInt(token.substr(token.find(":") + 2));
-        				
-        		if (id == updateId) {
-            		userIsOld = true; //mueve la bandera a que si existe un user con ese id
-            				
-            			getline(ss, token, ','); // lvl
-						int lvl = newLvl == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newLvl;
-
-            			getline(ss, token, ','); // code
-           				string code = newCode.empty() ? token.substr(token.find(":") + 2) : newCode;
-
-           				getline(ss, token, ','); // toros
-            			int toros = newToros == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newToros;
-
-            			getline(ss, token, ','); // vacas
-            			int vacas = newVacas == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newVacas;
-
-            			getline(ss, token, ','); // intentos
-            			int intentos = newIntentos == -1 ? stringToInt(token.substr(token.find(":") + 2)) : newIntentos;
-
-            			getline(ss, token, ','); // user
-            			string user = newUser.empty() ? token.substr(token.find(":") + 2) : newUser;
-
-            			getline(ss, token, ','); // pass
-            			string pass = token.substr(token.find(":") + 2); // este no se modifica
-            				
-            				
-        				player usuarioModificado;
-			            usuarioModificado.setUser(user);
-			            usuarioModificado.setPass(pass);
-			            usuarioModificado.setId(id);
-			            usuarioModificado.setToros(toros);
-			            usuarioModificado.setVacas(vacas);
-			            usuarioModificado.setLevel(lvl);
-			            usuarioModificado.setIntentos(intentos);
-			            usuarioModificado.setCode(code);
-				            
-			            archivoR.seekp(posPrev);
-			            
-			            archivoR << "ID: " << usuarioModificado.getId()
-			                 << ", lvl : " << usuarioModificado.getLevel()
-			                 << ", code : " << usuarioModificado.getCode()
-			                 << ", toros: " << usuarioModificado.getToros()
-			                 << ", vacas: " << usuarioModificado.getVacas()
-			                 << ", intentos : " << usuarioModificado.getIntentos()
-			                 << ", user : " << usuarioModificado.getUser()
-			                 << ", pass :" << usuarioModificado.getPass() << "\n";
-			                 
-			            break;
-            				
-            			}
-        				
-					  }
-					archivoR.close();
+string obtenerValorDosPuntos(const string& token){
+	size_t pos = token.find(":");
+	if(pos == string::npos || pos +2 >= token.size()){
+		cerr << RED << "Error: posicion fuera de rango token" << endl;
+		return "";
+	}
+	// Extrae el valor y elimina los espacios iniciales
+    string valor = token.substr(pos + 2);
+    size_t start = valor.find_first_not_of(' ');
+    return (start == string::npos) ? "" : valor.substr(start);
 }
 
-void startGame (){
-	int opc;
-	int id= asignarId();
-	//replantear con la nueva funcnion que modifica  y la variable estatica (-1 para primera ejecucion)
-	
-	player p1;// se instancia de manera generica
-	
-	//se tuvo que realizar está implementacion adiconal porque 
-	//cualquiera de los dos codigos si terminaban en 0 no los almacenaba
-	
-	//para el code del juego
-	string code= generarNum(p1.getLevel()); //genera un codigo aleatorio  de 3 cifras
-	stringstream codeFormateado;
-	codeFormateado << setw(3) << setfill('0') << code;
-	string codeString = codeFormateado.str();
-	p1.setCode(codeString); //seteado code verificado
-	
-	//para el pass del usuario (se esta seteando contraseñas sin tener una función de hash lo cual es un error grave de seguridad)
-	string pass=generarNum(6);
-	stringstream passFormateada;
-	passFormateada << setw(6) << setfill('0') << pass;
-	string passString = passFormateada.str();
-	p1.setPass(invertirText(passString)); //seteado pass verificado que cumpla con la contidad de digitos y le damos vuelta
-	
-	//el id se asgina de manera ascendente por orden de jugada
-	p1.setId(id);
-	Sleep(150); //intentando que suelte el archivo en lectura para escritura
-	
-	//player(string u = "Anonimo", int p = 0, int i = 0, int t = 0, int v = 0, int l = 3, int in = 0, int c = 0)
-        //: user(u), pass(p), id(i), toros(t), vacas(v), level(l), intentos(in), code(c)
-    //guardamos en archivo con los nuevos valores seteados
-	ofstream archivoE("db.json", ios::app);
-    if(archivoE.is_open()){
+void updatePlayer(int updateId, string newUser, string newPass, int newToros,
+                  int newVacas, int newLvl, int newIntentos, string newCode) {
     
-    	archivoE << "ID: "<< p1.getId() <<", lvl : 3, code : " << p1.getCode() << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser() << ", pass :" << p1.getPass() << ",\n"; 
-		archivoE.close();
-		
-	}else{
-		printf("No se pudo");
-	}
+    fstream archivoR("db.json", ios::in | ios::out); // se lo llama en modo lectura y escritura
+    string renglon; //line
+    streampos posPrev; //prevPos;
+
+    while (getline(archivoR, renglon)) {
+        stringstream ss(renglon);
+
+        posPrev = archivoR.tellg();
+        posPrev -= renglon.length() + 1; // Ajusta para nueva línea
+
+        string token;
+        getline(ss, token, ',');
+
+        int id = stringToInt(obtenerValorDosPuntos(token));
+        if (id == updateId) {
+            getline(ss, token, ','); // lvl
+            int lvl = newLvl == -1 ? stringToInt(obtenerValorDosPuntos(token)) : newLvl;
+
+            getline(ss, token, ','); // code
+            string code = newCode.empty() ? obtenerValorDosPuntos(token) : newCode;
+            trim(code); // Eliminar espacios en blanco adicionales
+
+            getline(ss, token, ','); // toros
+            int toros = newToros == -1 ? stringToInt(obtenerValorDosPuntos(token)) : newToros;
+
+            getline(ss, token, ','); // vacas
+            int vacas = newVacas == -1 ? stringToInt(obtenerValorDosPuntos(token)) : newVacas;
+
+            getline(ss, token, ','); // intentos
+            int intentos = newIntentos == -1 ? stringToInt(obtenerValorDosPuntos(token)) : newIntentos;
+
+            getline(ss, token, ','); // user
+            string user = newUser.empty() ? obtenerValorDosPuntos(token) : newUser;
+            trim(user); // Eliminar espacios en blanco adicionales
+
+            getline(ss, token, ','); // pass
+            string pass = newPass.empty() ? obtenerValorDosPuntos(token) : newPass;
+            trim(pass); // Eliminar espacios en blanco adicionales
+            cout << "Pass ahora es: " << pass << endl;
+            
+            if (pass.length() < 6) {
+                pass.insert(pass.begin(), 6 - pass.length(), '0'); // Rellenar con ceros al principio si es necesario
+            }
+
+            player usuarioModificado;
+            usuarioModificado.setUser(user);
+            usuarioModificado.setPass(pass);
+            usuarioModificado.setId(id);
+            usuarioModificado.setToros(toros);
+            usuarioModificado.setVacas(vacas);
+            usuarioModificado.setLevel(lvl);
+            usuarioModificado.setIntentos(intentos);
+            usuarioModificado.setCode(code);
+
+            archivoR.seekp(posPrev);
+
+            archivoR << "ID: " << usuarioModificado.getId()
+                     << ", lvl : " << usuarioModificado.getLevel()
+                     << ", code : " << usuarioModificado.getCode()
+                     << ", toros: " << usuarioModificado.getToros()
+                     << ", vacas: " << usuarioModificado.getVacas()
+                     << ", intentos : " << usuarioModificado.getIntentos()
+                     << ", user : " << usuarioModificado.getUser()
+                     << ", pass : " << usuarioModificado.getPass() << ",\n";
+
+            break;
+        }
+    }
+    archivoR.close();
+}
+
+void startGame() {
+    int opc;
+    char respuesta;
+    string user = "Anonimo";
+    int id = asignarId();
     
-    Sleep(100);    
-	do{
-	system("cls");
-	alternarLocale();
-	margen();
-	titulo();
-	textoCentro("NUEVA PARTIDA",5);
-	textoCentro("*********************",6);
-	cout << WINE;
-	textoCentro("ADVERTENCIA: LAS OPCIONES EN ROJO DE ESTE MENU PUEDEN FALLAR",7);
-	cout << BLACK;
-	// recuadro 9- 19
-	cuadrito(18,8,78,16);
-	alternarLocale();
-	gotoxy(20, 9); cout << "Se te asigno el "<<WHITE BG_CYAN "ID N° " << p1.getId() << BG_COW BLACK;//
-	// int generarNum(6);
-	gotoxy(20, 10); cout << "Tu contraseña será: " << GREEN << p1.getPass() << BLACK;
-	gotoxy(20,12); cout << ORANGE; parpadeo("Ingrese su nombre de usuario", 12); cout << BLACK;
-	hiddenCur();
-	gotoxy(20,12); cout << "Recuerda estas credenciales para poder acceder a las" ;
-	gotoxy(20,13); cout << "estadísticas de tu progreso.";
-	gotoxy(20,14); cout << "Si no ingresas un nombre de usuario jugaras como '"<< BG_ORANGE << p1.getUser() << BG_COW << "'" ;
-	gotoxy(20,15); cout << "¿Estás listo para comenzar en el nivel " << p1.getLevel() <<" ?";
-	//gotoxy(20,13); cout << "Si alguno de los números de tu ingreso está presente en el" ;
-	
-	textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 17);
-		gotoxy(20, 19);printf("1. INICIAR PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
-		cout << WINE;
-		gotoxy(20, 20);printf("2. MODIFICAR EL NOMBRE DE USUARIO");
-		gotoxy(20, 21);printf("3. MODIFICAR NIVEL");
-		gotoxy(20, 22);printf("4. ESTE NO ES MI USUARIO");//
-		cout << BLACK;
-		gotoxy(20, 23);printf("0. SALIR");
-		showCur();
-		gotoxy(20, 25);printf("OPCIÓN SELECCIONADA: -> ");
-		alternarLocale();
-		scanf("%i", &opc);
-		
-	}while(opc<0 || opc > 4);
-	switch(opc){
-		case 0:
-			alternarLocale();
-			salida();
-			break;
-		case 1:
-			intento(id);
-			break; 
-		case 2:
-			changeUserName();
-			break;
-		case 3:
-			cout << WHITE << BG_WINE;
-			textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
-			textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
-			cout << BLACK << BG_COW;
-			Sleep(1250);
-			menuPrincipal ();
-			break;
-		case 4:
-			cout << WHITE << BG_WINE;
-			textoCentro("DISCULPA, OPCION EN CONSTRUCCION",23);
-			textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
-			cout << BLACK << BG_COW;
-			Sleep(1250);
-			menuPrincipal ();
-			break;
-		default:
-			cout << WHITE << BG_WINE;
-			textoCentro("LA OPCIÓN SELECCIONADA FUERA DE RANGO",23);
-			cout << BLACK << BG_COW;
-			Sleep(1250);
-			menuPrincipal ();
-			break;
-	}
+    player p1;
+    
+    string code = generarNum(p1.getLevel());
+    stringstream codeFormateado;
+    codeFormateado << setw(3) << setfill('0') << code;
+    string codeString = codeFormateado.str();
+    p1.setCode(codeString);
+    
+    string pass = generarNum(6);
+    stringstream passFormateada;
+    passFormateada << setw(6) << setfill('0') << pass;
+    string passString = passFormateada.str();
+    p1.setPass(invertirText(passString));
+    
+    p1.setId(id);
+    Sleep(150);
+    
+    ofstream archivoE("db.json", ios::app);
+    if (archivoE.is_open()) {
+        archivoE << "ID: " << p1.getId() << ", lvl : 3, code : " << p1.getCode()
+                 << ", toros: 0, vacas: 0, intentos : 0, user : " << p1.getUser()
+                 << ", pass :" << p1.getPass() << ",\n";
+        archivoE.close();
+    } else {
+        printf("No se pudo");
+    }
+    
+    Sleep(100);
+    do {
+        system("cls");
+        alternarLocale();
+        margen();
+        titulo();
+        textoCentro("NUEVA PARTIDA", 5);
+        textoCentro("*********************", 6);
+        cout << WINE;
+        textoCentro("ADVERTENCIA: LAS OPCIONES EN ROJO DE ESTE MENU PUEDEN FALLAR", 7);
+        cout << BLACK;
+        
+        cuadrito(18, 8, 78, 16);
+        alternarLocale();
+        gotoxy(20, 9); cout << "Se te asigno el " << WHITE << BG_CYAN "ID N° " << p1.getId() << BG_COW BLACK;
+        gotoxy(20, 10); cout << "Tu contraseña será: " << GREEN << p1.getPass() << BLACK;
+        hiddenCur();
+        gotoxy(20, 11); cout << "Responder con S(para si) o N (para no)" << BLACK;
+        gotoxy(20, 12); cout << ORANGE; parpadeo("¿Desea ingresar un nombre de usuario?", 12, 'a'); cout << BLACK;
+        showCur();
+        gotoxy(20, 13); cin >> respuesta;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignorar el resto de la línea
+        
+        respuesta = toupper(respuesta);
+        if (respuesta == 'S') {
+            gotoxy(20, 12); cout << ORANGE << "Ingrese el que será su nombre de usuario: " << BLACK;
+            gotoxy(20, 13); cin >> user;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignorar el resto de la línea
+            updatePlayer(p1.getId(), user, "", -1, -1, -1, p1.getIntentos(), "");
+            p1 = findPlayerById(id);
+        } else {
+            gotoxy(20, 12); cout << "Recuerda estas credenciales para poder acceder a las";
+            gotoxy(20, 13); cout << "estadísticas de tu progreso.";
+            gotoxy(20, 14); cout << "Si no ingresas un nombre de usuario jugaras como '" << BG_ORANGE << p1.getUser() << BG_COW << "'";
+            gotoxy(20, 15); cout << "¿Estás listo para comenzar en el nivel " << p1.getLevel() << "?";
+            
+            textoCentro("Usa el teclado númerico para seleccionar una de las opciones", 17);
+            gotoxy(20, 19); printf("1. INICIAR PARTIDA");
+            cout << WINE;
+            gotoxy(20, 20); printf("2. MODIFICAR EL NOMBRE DE USUARIO");
+            gotoxy(20, 21); printf("3. MODIFICAR NIVEL");
+            gotoxy(20, 22); printf("4. ESTE NO ES MI USUARIO");
+            cout << BLACK;
+            gotoxy(20, 23); printf("0. SALIR");
+            showCur();
+            gotoxy(20, 25); printf("OPCIÓN SELECCIONADA: -> ");
+            alternarLocale();
+            cin >> opc;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignorar el resto de la línea
+        }
+    } while (opc < 0 || opc > 4);
+    
+    switch (opc) {
+        case 0:
+            alternarLocale();
+            salida();
+            break;
+        case 1:
+            intento(id);
+            break;
+        case 2:
+            changeUserName();
+            break;
+        case 3:
+            cout << WHITE << BG_WINE;
+            textoCentro("DISCULPA, OPCION EN CONSTRUCCION", 23);
+            textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
+            cout << BLACK << BG_COW;
+            Sleep(1250);
+            menuPrincipal();
+            break;
+        case 4:
+            cout << WHITE << BG_WINE;
+            textoCentro("DISCULPA, OPCION EN CONSTRUCCION", 23);
+            textoCentro("SE REDIRECCIONARÁ  AL MENU PRINCIPAL", 24);
+            cout << BLACK << BG_COW;
+            Sleep(1250);
+            menuPrincipal();
+            break;
+        default:
+            cout << WHITE << BG_WINE;
+            textoCentro("LA OPCIÓN SELECCIONADA FUERA DE RANGO", 23);
+            cout << BLACK << BG_COW;
+            Sleep(1250);
+            menuPrincipal();
+            break;
+    }
 }
 
 
@@ -754,13 +797,14 @@ void changeUserName(){ // revisar el cambio en el constructor
 }
 
 void intento (int id){
-	char opc;
-	int intento=0;
+	string opc;
 	player pp=findPlayerById(id);
+	int tanteo=pp.getIntentos();
+	int nivel = pp.getLevel();
 	string vaquita=" VACA";
 	string torito=" TORO";
 	
-	do{
+	while(true){
 	
 	system("cls");
 	system("color 70");
@@ -775,15 +819,13 @@ void intento (int id){
 	cuadrito(18,8,78,11);
 	alternarLocale();
 	gotoxy(20, 9); cout << "Debes adivinar un N° de " << pp.getLevel() << " cifras.";//
-	
 	//gotoxy(20,10); cout << "Intentos realizados N° "<< pp.getIntentos() << ( (pp.getVacas() > 1) ? BG_YELLOW : WHITE BG_RED) && pp.getVacas() << " VACAS" << ( (pp.getToros() > 1) ? BG_LGREEN : WHITE BG_RED) && pp.getToros() << " TOROS";
-	
 	gotoxy(20,10); 
 		cout << "Intentos realizados ";
 			
 			if(pp.getIntentos() <= 5){
 				cout << BG_LGREEN;
-			} else if (pp.getIntentos() >5 && pp.getIntentos() < 10){
+			} else if (pp.getIntentos() >5 && pp.getIntentos() < 12){
 				cout << BG_ORANGE;
 			}else{
 				cout << BG_WINE WHITE;
@@ -823,17 +865,11 @@ void intento (int id){
 	gotoxy(20,12); cout << "Ingresá un nuevo intento" ;
 	showCur();
 	
-	/*if( !(passFind >= 102345 && passFind <= 987654)){
-		gotoxy(20,13); cout << WINE <<"LA CONTRASEÑA DEBE SER DE 6 NÚMEROS";
-		Sleep(800);
-		alternarLocale();
-		cout << BLACK;
-		changeUserName();
-	}*/
+	
 		cout << WINE;
-		textoCentro( "EN ESTE MENU LAS OPCIONES SON CON LETRAS",15);
+		textoCentro( "LAS OPCIONES DE ESTE MENU SON CON LETRAS",15);
 		cout << BLACK;
-		gotoxy(19,16);printf("Usa las teclas asignadas para seleccionar las opciones");
+		gotoxy(19, 16);printf("Usa las teclas asignadas para seleccionar las opciones");
 		gotoxy(19, 18);printf("T. INGRESAR INTENTO");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
 		gotoxy(19, 19);printf("L. RENDIRSE (LOOOSER)");
 		gotoxy(19, 20);printf("B. VOLVER AL MENU PRINCIPAL");
@@ -843,36 +879,49 @@ void intento (int id){
 		alternarLocale();
 		//scanf("%i", &opc);
 		cin >> opc;
-		opc = toupper(opc);
+		//opc = toupper(opc);
 		
-		} while (!(isdigit(opc) || isalpha(opc)));
+		/*if(opc.size()== static_cast<size_t>(nivel) && all_of(opc.begin(), opc.end(), ::isdigit) ){
+		//bool ingresoCorrecto=true;		
+		//convertimos para la comparacion
+		if(pp.getCode() == opc){
+			winner(pp.getId());
+		*/
 		
-		if(isdigit(opc)){
-			//lo que pasará con el digito ingresado
-			string numIngresado(1, opc);
-			
-			//convertimos el int a string del codigo asignado
-			ostringstream oss;
-    		oss << pp.getCode();
-    		string codeAdivinar = oss.str();
-    		
-			if(codeAdivinar == numIngresado){
-				//caso de que adivine en el primer acierto
-				winner(id);
-			}
-			if(!(codeAdivinar.length() == numIngresado.length())){
+		if (opc.size() == static_cast<size_t>(nivel) && all_of(opc.begin(), opc.end(), ::isdigit)) {
+    // Convertir ambas cadenas a minúsculas para una comparación insensible a mayúsculas
+    string code = pp.getCode();
+    transform(code.begin(), code.end(), code.begin(), ::tolower);
+    transform(opc.begin(), opc.end(), opc.begin(), ::tolower);
 
-				cout << WINE;
-				gotoxy(20, 9); cout << "Debes adivinar un N° de " << pp.getLevel() << " cifras.";
-				cout << BLACK;
-				Sleep(1500);
-				startGame();//llamada recursiva que no me pertmite
-			}
-			
-			}else if(isalpha(opc)){
-			opc= toupper(opc);
-			switch (opc){
-				case 'T':
+    // Eliminar espacios en blanco al inicio y al final de las cadenas
+    code.erase(0, code.find_first_not_of(' '));
+    code.erase(code.find_last_not_of(' ') + 1);
+    opc.erase(0, opc.find_first_not_of(' '));
+    opc.erase(opc.find_last_not_of(' ') + 1);
+
+    if (code == opc) {
+        winner(pp.getId());
+		
+		}else {
+		cout << WINE;
+		alternarLocale();
+    	gotoxy(20, 9); cout << "Debes adivinar un número de " << pp.getLevel() << " cifras.";
+    	alternarLocale();
+    	cout << BLACK;
+    	//alternarLocale();
+    	tanteo++;
+	//updatePlayer(int updateId, string newUser, string newPass, int newToros,
+                  //int newVacas, int newLvl, int newIntentos, string newCode)
+    	updatePlayer(pp.getId(), "", pp.getPass(), -1, -1, -1, tanteo, pp.getCode() );
+    	Sleep(1500);
+    	pp= findPlayerById(id);
+    	continue;
+		}
+			} else if (opc.size() == 1 && isalpha(opc[0])){
+				char option = toupper(opc[0]);
+				switch (option){
+					case 'T':
 					winner(id);//algo
 					break;
 				case 'L':
@@ -885,16 +934,19 @@ void intento (int id){
 					salida();
 					break;
 				default:
+					
 					gotoxy(19,15); cout << WINE << "LA LETRA INGRESADA NO ES UNA OPCIÓN VÁLIDA" << BLACK;
 					startGame();//intento(id); // llamada recursiva que no me permite
 					break;
-			}
-		}else{
+				}
+			}else{
+			alternarLocale();
 			gotoxy(19,15); cout << WINE << "LA OPCIÓN INGRESADA NO ES VÁLIDA" << BLACK;
 			Sleep(1500);
-			startGame();//intento(id);
-		}
-	
+			alternarLocale();
+			continue;
+}
+}
 }
 
 
@@ -942,11 +994,11 @@ player findPlayerById(int findId) {
 }
 
 int stringToInt(const string& str) {// para conversion gpt ayudo aqui
-    /*stringstream ss(str);
+    stringstream ss(str);
     int number;
     ss >> number;
-    return number;*/
-    return stoi(str); // MODIFICADO POR ACTUALIZACIÓN A C++ V11
+    return number;
+    //return stoi(str); // MODIFICADO POR ACTUALIZACIÓN A C++ V11
 }
 
 string intToString(int num) {
