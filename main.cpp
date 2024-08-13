@@ -212,9 +212,11 @@ void charger(string txt){
 	}
 	
 	for(i=4; i<= 95; i++){
+		cout << GREEN;
 	gotoxy(i, 26); printf("%c\n", 178);
 	Sleep(23);//retardo para apariencia de carga
 	}
+	cout << BLACK;
 }
 
 //oculta el cursor
@@ -478,7 +480,7 @@ bool tieneUser(){
 string obtenerValorDosPuntos(const string& token){
 	size_t pos = token.find(":");
 	if(pos == string::npos || pos +2 >= token.size()){
-		cerr << RED << "Error: posicion fuera de rango token" << endl;
+		//cerr << RED << "Ups: Posible error en escritura de archivo" << endl;
 		return "";
 	}
 	// Extrae el valor y elimina los espacios iniciales
@@ -560,11 +562,24 @@ void updatePlayer(int updateId, string newUser, string newPass, int newToros,
     archivoR.close();
 }
 
+void generarYFormatearCodigo(player& p, int longitud, bool invertir = false) {
+    string codigo = generarNum(longitud);
+    stringstream codigoFormateado;
+    codigoFormateado << setw(longitud) << setfill('0') << codigo;
+    string codigoString = codigoFormateado.str();
+    if (invertir) {
+        codigoString = invertirText(codigoString);
+    }
+    p.setCode(codigoString);
+}
+
+
 void startGame() {
     int opc;
     char respuesta;
     string user = "Anonimo";
     int id = asignarId();
+    bool changeName=false;
     
     player p1;
     
@@ -596,6 +611,7 @@ void startGame() {
     Sleep(100);
     do {
         system("cls");
+        cout << BLACK BG_COW;
         alternarLocale();
         margen();
         titulo();
@@ -610,8 +626,12 @@ void startGame() {
         gotoxy(20, 9); cout << "Se te asigno el " << WHITE << BG_CYAN "ID N° " << p1.getId() << BG_COW BLACK;
         gotoxy(20, 10); cout << "Tu contraseña será: " << GREEN << p1.getPass() << BLACK;
         hiddenCur();
-        gotoxy(20, 11); cout << "Responder con S(para si) o N (para no)" << BLACK;
-        gotoxy(20, 12); cout << ORANGE; parpadeo("¿Desea ingresar un nombre de usuario?", 12, 'a'); cout << BLACK;
+        
+        if(changeName == false){
+        cout << MAGENTA ;
+        textoCentro("Responder con S(para si) o N (para no)",11);
+		cout  << BLACK;
+        gotoxy(20, 12); cout << ORANGE; parpadeo("¿Desea ingresar un nombre de usuario?", 12, 'a'); cout << BLACK;}
         showCur();
         gotoxy(20, 13); cin >> respuesta;
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignorar el resto de la línea
@@ -623,6 +643,7 @@ void startGame() {
             cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignorar el resto de la línea
             updatePlayer(p1.getId(), user, "", -1, -1, -1, p1.getIntentos(), "");
             p1 = findPlayerById(id);
+            changeName = true;
         } else {
             gotoxy(20, 12); cout << "Recuerda estas credenciales para poder acceder a las";
             gotoxy(20, 13); cout << "estadísticas de tu progreso.";
@@ -647,7 +668,6 @@ void startGame() {
     
     switch (opc) {
         case 0:
-            alternarLocale();
             salida();
             break;
         case 1:
@@ -804,6 +824,10 @@ void intento (int id){
 	string torito=" TORO";
 	int cow;
 	int bull;
+	string msj1="JUGANDO EN EL NIVEL ";
+	string msj2= msj1 + stringToChar(intToString(nivel));
+	string msj3="USER: ";
+	string msj4= msj3 + pp.getUser();
 	
 	while(true){
 	cow=0;
@@ -812,10 +836,14 @@ void intento (int id){
 	system("color 70");
 	margen();
 	titulo();
-	gotoxy(36,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
+	textoCentro(stringToChar(msj2),5);
+	//gotoxy(36,5); cout <<"JUGANDO EN EL NIVEL " << pp.getLevel();
 	textoCentro("*********************",6);
 	//antes de ter,minar organizar en texto centro el user y quitar el code
-	gotoxy(38,7); cout << "USER: " << pp.getUser() << " "<< pp.getCode();
+	cout << BG_MAGENTA WHITE;
+	textoCentro(stringToChar(msj4),7);
+	cout << BG_COW BLACK;
+	//gotoxy(38,7); cout << "USER: " << pp.getUser() << " "<< pp.getCode();
 	gotoxy(38,9); cout << pp.getCode();
 	// recuadro 9- 19
 	cuadrito(18,8,78,11);
@@ -1122,13 +1150,14 @@ void winner(int id){//TERMINADO
 	//menu 19
 	gotoxy(20, 19); printf("Usa el teclado númerico para seleccionar una de las opciones");
 	gotoxy(20, 21);printf("1. JUGAR UNA NUEVA PARTIDA");//en menu 1 y 2 deberia tambien dejarme modificar el nivel de dificultad
-	gotoxy(20, 22);printf("2. VOLVER AL MENU PRINCIPAL");
-	gotoxy(20, 23);printf("0. SALIR");
+	gotoxy(20, 22);printf("2. JUGAR OTRA VEZ PERO MÁS DIFICIL");
+	gotoxy(20, 23);printf("3. VOLVER AL MENU PRINCIPAL");
+	gotoxy(20, 24);printf("0. SALIR");
 	showCur();
-	gotoxy(20, 25);printf("OPCIÓN SELECCIONADA: -> ");
+	gotoxy(20, 26);printf("OPCIÓN SELECCIONADA: -> ");
 	scanf("%i", &opc);
 	
-	}while (opc<0 || opc > 2);
+	}while (opc<0 || opc > 3);
 	
 	switch(opc){
 		case 0:
@@ -1136,10 +1165,19 @@ void winner(int id){//TERMINADO
 			salida();
 			break;
 		case 1:
+			updatePlayer(id, "", "", 0,
+	              0, lvl, 0, generarNum(lvl));
 			alternarLocale();
 			intento(id);
 			break;
 		case 2:
+			lvl ++;
+			updatePlayer(id, "", "", 0,
+                  0, lvl, 0, generarNum(lvl));
+			alternarLocale();
+			intento(id);
+			break;
+		case 3:
 			alternarLocale();
 			menuPrincipal();
 			break;
